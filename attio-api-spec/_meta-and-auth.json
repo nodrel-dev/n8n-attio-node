@@ -1,0 +1,174 @@
+{
+  "info": {
+    "title": "Attio API",
+    "version": "2.0.0",
+    "contact": {
+      "name": "Attio Support",
+      "email": "support@attio.com",
+      "url": "https://attio.com/help"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.attio.com",
+      "description": "Production"
+    }
+  ],
+  "securitySchemes": {
+    "oauth2": {
+      "type": "oauth2",
+      "description": "This API uses OAuth 2.0 with the authorization code grant flow.",
+      "flows": {
+        "authorizationCode": {
+          "authorizationUrl": "https://app.attio.com/authorize",
+          "tokenUrl": "https://app.attio.com/oauth/token",
+          "scopes": {
+            "user_management:read": "View workspace members.",
+            "user_management:read-write": "View workspace members.",
+            "record_permission:read": "View, and optionally write, records.",
+            "record_permission:read-write": "View, and optionally write, records.",
+            "object_configuration:read": "View, and optionally write, the configuration and attributes of objects.",
+            "object_configuration:read-write": "View, and optionally write, the configuration and attributes of objects.",
+            "list_entry:read": "View, and optionally write, the entries in a list.",
+            "list_entry:read-write": "View, and optionally write, the entries in a list.",
+            "list_configuration:read": "View, and optionally write, the configuration and attributes of lists.",
+            "list_configuration:read-write": "View, and optionally write, the configuration and attributes of lists.",
+            "public_collection:read": "View, and optionally write, both the settings and information within public collections.",
+            "public_collection:read-write": "View, and optionally write, both the settings and information within public collections.",
+            "private_collection:read": "View, and optionally modify, both the settings and information of all collections within the workspace, regardless of their access settings.",
+            "private_collection:read-write": "View, and optionally modify, both the settings and information of all collections within the workspace, regardless of their access settings.",
+            "comment:read": "View comments (and threads), and optionally write comments.",
+            "comment:read-write": "View comments (and threads), and optionally write comments.",
+            "task:read": "View, and optionally write, tasks.",
+            "task:read-write": "View, and optionally write, tasks.",
+            "note:read": "View, and optionally write, notes.",
+            "note:read-write": "View, and optionally write, notes.",
+            "meeting:read": "View, and optionally write, meetings.",
+            "meeting:read-write": "View, and optionally write, meetings.",
+            "call_recording:read": "View, and optionally write, call recordings, transcripts and speakers for meetings.",
+            "call_recording:read-write": "View, and optionally write, call recordings, transcripts and speakers for meetings.",
+            "webhook:read": "View, and optionally manage, webhooks.",
+            "webhook:read-write": "View, and optionally manage, webhooks.",
+            "file:read": "View, and upload files.",
+            "file:read-write": "View, and upload files."
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "oauth2": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Objects",
+      "description": "Objects are the core data models inside of Attio. They contain standard objects, such as [people](/rest-api/endpoint-reference/standard-objects/people/list-person-records), [companies](/rest-api/endpoint-reference/standard-objects/companies/list-company-records) or [deals](/docs/standard-objects-deals), and custom objects that are specific to your use-case. See our [objects and lists guide](/docs/objects-and-lists) for more information."
+    },
+    {
+      "name": "Object views",
+      "description": "Object views are saved table or board layouts for an object."
+    },
+    {
+      "name": "List views",
+      "description": "List views are saved table or board layouts for a list."
+    },
+    {
+      "name": "Attributes",
+      "description": "Attributes model properties of objects and lists. Some attributes, such as the `name` attribute on a person, are system-defined, while others are user-defined. Attributes are one of [many types](/docs/attribute-types) such as text, location or select. See our [objects and lists guide](/docs/objects-and-lists) for more information."
+    },
+    {
+      "name": "Records",
+      "description": "Records are individual instances of objects e.g. a specific [person](/rest-api/endpoint-reference/standard-objects/people/list-person-records) or [company](/rest-api/endpoint-reference/standard-objects/companies/list-company-records). See our [objects and lists guide](/docs/objects-and-lists) for more information."
+    },
+    {
+      "name": "SCIM groups",
+      "description": "SCIM groups represent Attio teams managed through the SCIM provisioning protocol."
+    },
+    {
+      "name": "SCIM schemas",
+      "description": "SCIM schemas describe the resource types supported by the SCIM service provider."
+    },
+    {
+      "name": "SCIM users",
+      "description": "SCIM users represent workspace members managed through the SCIM provisioning protocol."
+    },
+    {
+      "name": "Lists",
+      "description": "Lists are used to model a particular process. A list contains many records of a single object type, where each record is represented by an entry. Entries contain their own data from attributes defined on the list and also data from their parent record. See our [objects and lists guide](/docs/objects-and-lists) for more information."
+    },
+    {
+      "name": "Meta",
+      "description": "Meta endpoints are used to get information about the API token."
+    },
+    {
+      "name": "Entries",
+      "description": "Entries are elements in a list that reference a single parent record. Entries contain their own data from attributes defined on the list and also data from their parent record. See our [objects and lists guide](/docs/objects-and-lists) for more information."
+    },
+    {
+      "name": "Files",
+      "description": "Files are documents and folders linked to records, stored either in Attio or connected via external storage providers."
+    },
+    {
+      "name": "Workspace members",
+      "description": "Workspace members represent a user with access to a workspace. Workspace members are assigned roles that determine what they can do within the workspace."
+    },
+    {
+      "name": "Notes",
+      "description": "Notes are rich text documents that reference a single parent record."
+    },
+    {
+      "name": "Meetings",
+      "description": "Meetings are events synced from your calendar, added manually or added from third-party integrations."
+    },
+    {
+      "name": "Call recordings",
+      "description": "Call recordings store video, audio, transcript and speaker information for calls. They are linked to meetings."
+    },
+    {
+      "name": "Transcripts",
+      "description": "Transcripts contain the speech segments and speaker information for a call recording. They are linked to call recordings."
+    },
+    {
+      "name": "Tasks",
+      "description": "A task is a defined, actionable item with references to linked records and assigned workspace members."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhooks allow you to listen for changes to data in Attio, for example when a record is updated."
+    },
+    {
+      "name": "Threads",
+      "description": "Threads are groups of [comments](/rest-api/endpoint-reference/comments/get-a-comment) on either a record or entry."
+    },
+    {
+      "name": "Comments",
+      "description": "Comments are messages on a [thread](/rest-api/endpoint-reference/threads/list-threads)."
+    },
+    {
+      "name": "People",
+      "description": "People are one of the core objects inside of Attio. Person records can be added to lists and can be created automatically when syncing your mailbox."
+    },
+    {
+      "name": "Companies",
+      "description": "Companies are one of the core objects inside of Attio. Company records can be added to lists and can be created automatically when syncing your mailbox."
+    },
+    {
+      "name": "Users",
+      "description": "Users are an optional standard object that represents a user of your system. Users can belong to many workspaces."
+    },
+    {
+      "name": "Deals",
+      "description": "Deals are an optional standard object that represent a deal or opportunity."
+    },
+    {
+      "name": "Workspaces",
+      "description": "Workspaces are an optional standard object that represent a workspace or account in your system. Workspaces have many users and can be used to model a multi-tenant system. A company record can optionally have multiple workspaces."
+    },
+    {
+      "name": "SQL",
+      "description": "Query records and list entries across your workspace using SQL. A single query can reference any object or list in the workspace."
+    }
+  ]
+}
