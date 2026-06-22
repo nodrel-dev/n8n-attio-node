@@ -1,0 +1,327 @@
+---
+description: "Task list for Attio Action Node (n8n-nodes-attio)"
+---
+
+# Tasks: Attio Action Node (n8n-nodes-attio)
+
+**Input**: Design documents from `/specs/001-attio-action-node/`
+
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
+
+**Tests**: INCLUDED. The constitution (Principle VIII) and the task brief mandate pure-core unit tests written **first** for every function in brief §9, before the operation is wired or verified live.
+
+**Organization**: Grouped by user story. Within stories, the operation order follows the locked build order: credential + getObjects → Record Create, Get, Update (both modes), Upsert, Get Many, Search, Delete, secondary reads → Notes → Tasks.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: US1–US7 from spec.md; setup/foundational/polish carry no story label
+- Each operation is "done" only after its pure-core tests pass, its [VERIFY-LIVE] gate (brief §15) is confirmed against a real workspace, and its AI-Agent tool-path check passes.
+
+## Path Conventions
+
+Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (with `core/`, `methods/`, `descriptions/`), `test/`, `.github/workflows/` at repo root. `attio-api-spec/` is reference-only — never imported, copied, or read at build/run time.
+
+---
+
+## Phase 1: Setup & CI/CD (Shared Infrastructure)
+
+**Purpose**: Clear the eligibility gate, scaffold, and stand up green CI/CD **before any operation** so every task merges through the pipeline (brief §16, §18).
+
+- [X] T001 Clear **Decision Gate 0** (research.md R6, brief §3): confirm with the n8n Creator Portal that a fresh hand-built package under the Nodrel identity is accepted for verification; capture the final package name (`n8n-nodes-attio` or `@nodrel/n8n-nodes-attio`). **Blocks all scaffolding.**
+- [X] T002 Scaffold the node with `npm create @n8n/node` (depends on T001 for the package name)
+- [X] T003 Configure `package.json`: final name (T001), `n8n` block (`n8nNodesApiVersion: 1`, `credentials: ["dist/credentials/AttioApi.credentials.js"]`, `nodes: ["dist/nodes/Attio/Attio.node.js"]`), `keywords` incl. `n8n-community-node-package`, `engines.node >= 22.22`, **`dependencies: {}`**, devDep `@n8n/node-cli >= 0.23.0`
+- [X] T004 [P] Configure `tsconfig.json`: strict, **incremental OFF**, emit to `dist/`
+- [X] T005 [P] Configure ESLint with `eslint-plugin-n8n-nodes-base` in `.eslintrc.js`
+- [X] T006 [P] Add `commitlint.config.js` + `lefthook.yml` (wire `commit-msg`→commitlint, `pre-commit`→lint)
+- [X] T007 [P] Configure the test runner (scaffold default) and create `test/core/`
+- [X] T008 Add `.github/workflows/ci.yml`: `npm ci`, `npm run lint`, `npx @n8n/scan-community-package n8n-nodes-attio`, `tsc --noEmit`, `npm run build`, `npm test`, **zero-dep gate** (`node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?1:0)"`), **no-env/no-fs gate** (grep `nodes/` for `process.env` and `require('fs')`/`from 'fs'`/`node:fs`; fail if any match, per FR-010/Principle X), PR-title commitlint; top-level `permissions: contents: read`
+- [X] T009 [P] Add `.github/workflows/release-please.yml` + `release-please-config.json` + `.release-please-manifest.json` (`release-please-action@v4`, `release-type: node`, perms `contents: write` + `pull-requests: write`)
+- [X] T010 [P] Add/confirm `.github/workflows/publish.yml` (scaffold provenance publisher; `on: release: types: [published]`; `permissions: contents: read, id-token: write`; `npm publish --provenance --access public`)
+- [X] T011 [P] Document npm **Trusted Publisher** (OIDC) setup, branch protection on `main` (green `ci.yml` + conventional PR title), and least-privilege `GITHUB_TOKEN` in `README.md`/repo settings notes
+- [X] T012 Verify CI is green on the empty scaffold (lint, typecheck, build, zero-dep gate, scan all pass)
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Node skeleton + shared pure core that EVERY operation depends on.
+
+**⚠️ CRITICAL**: No user-story operation can begin until this phase is complete.
+
+- [X] T013 Create node skeleton `nodes/Attio/Attio.node.ts`: `requestDefaults` (`baseURL: 'https://api.attio.com'`, JSON accept/content-type headers), **Resource** selector (Record/Note/Task **only** — assert Objects is absent from the Resource enum per FR-015, `noDataExpression: true`), **Operation** selector skeleton (per-resource via `displayOptions`), wire `descriptions/` modules
+- [X] T014 [P] Add `nodes/Attio/Attio.node.json` codex metadata, `attio.svg` icon, and set the node `usableAsTool`/`action` posture (AI-tool readiness, NFR-8)
+- [X] T015 [P] Write table-driven tests for `formatAttioError` (400/401, 403→likely-missing-scope, 404, 429→rate-limit + `Retry-After` as **date**; never echoes token) in `test/core/formatAttioError.test.ts`
+- [X] T016 Implement `formatAttioError` in `nodes/Attio/core/formatAttioError.ts` (depends on T015)
+- [X] T017 [P] Write tests for `objectPath` (slug/id passthrough) in `test/core/objectPath.test.ts`
+- [X] T018 Implement `objectPath` in `nodes/Attio/core/objectPath.ts` (depends on T017)
+- [X] T019 Implement shared response handling: unwrap top-level `data` into n8n items (one per array element / one for single), and DELETE `{ success: true, <id> }` synthesis, in the node routing/output config
+- [X] T020 Wire `continueOnFail` and route all errors through `formatAttioError`; assert the token is never logged or echoed (FR-13, NFR-9)
+
+**Checkpoint**: Skeleton compiles, shared pure core tested, CI green — operations can now be built.
+
+---
+
+## Phase 3: User Story 1 - Connect & choose an object (Priority: P1) 🎯 MVP
+
+**Goal**: A working `attioApi` credential with a `/v2/self` test and a dynamic Object dropdown from the user's workspace.
+
+**Independent Test**: Save a valid token → test passes; invalid → rejected at the dialog. Open any Record op → dropdown lists People/Companies/Deals/custom by name.
+
+- [ ] T021 [P] [US1] Write tests for `mapObjectsToOptions` (name = `plural_noun` ?? `singular_noun` ?? `api_slug`; value = `api_slug`) in `test/core/mapObjectsToOptions.test.ts`
+- [ ] T022 [US1] Implement `mapObjectsToOptions` in `nodes/Attio/core/mapObjectsToOptions.ts` (depends on T021)
+- [ ] T023 [US1] Implement `credentials/AttioApi.credentials.ts`: `apiToken` (`password`), Bearer auth, `test` → `GET /v2/self`, field description listing the refined scope table (research.md R2)
+- [ ] T024 [US1] Implement `getObjects` loadOptions in `nodes/Attio/methods/loadOptions.ts` (`GET /v2/objects` → `mapObjectsToOptions`; no caching)
+- [ ] T025 [US1] Wire the **Object** param (`type: options`, `loadOptionsMethod: 'getObjects'`, required) into `nodes/Attio/descriptions/record.description.ts` and Note Create's `parent_object`
+- [ ] T026 [US1] **Verify-live**: valid token saves / invalid rejected at dialog; dropdown populates standard + custom objects (quickstart US1, SC-001/SC-002)
+
+**Checkpoint**: Auth + object selection fully functional and independently testable.
+
+---
+
+## Phase 4: User Story 2 - Create a record (Priority: P1) 🎯 MVP
+
+**Goal**: Create a record and read it back (Record Create + Get), proving auth → object → request → unwrap end-to-end.
+
+**Independent Test**: Select Companies, supply Values, run Create → item contains `data.id.record_id`; Get the same id round-trips.
+
+- [ ] T027 [P] [US2] Write tests for `buildValuesBody` (parses to object → `{ data: { values } }`; malformed → clear error) in `test/core/buildValuesBody.test.ts`
+- [ ] T028 [US2] Implement `buildValuesBody` in `nodes/Attio/core/buildValuesBody.ts` (depends on T027)
+- [ ] T029 [US2] Add **Values** (`json`) param + Record **Create** routing `POST /v2/objects/{object}/records` in `nodes/Attio/descriptions/record.description.ts`
+- [ ] T030 [US2] Add **Record ID** param + Record **Get** routing `GET /v2/objects/{object}/records/{record_id}`
+- [ ] T031 [US2] Add readable operation names + `action` text for Create and Get
+- [ ] T032 [US2] **Verify-live**: Create returns `data.id.record_id` (AS-A1); token missing `record_permission:read-write` → 403 names the scope (AS-A2, SC-004)
+- [ ] T033 [US2] **AI-Agent tool-path check**: Create Record executes via the agent tool path
+- [ ] T034 [US2] **Verify-live**: Get round-trips with dual read scope (`record_permission:read` + `object_configuration:read`)
+
+**Checkpoint**: MVP — a user goes from token to created-and-read record without typing a slug.
+
+---
+
+## Phase 5: User Story 4 - Update with append vs overwrite (Priority: P2)
+
+**Goal**: One Update operation whose Multiselect Mode switches PATCH (append) vs PUT (overwrite) **declaratively** (research.md R1).
+
+**Independent Test**: Append retains existing multi-value set + new; Overwrite makes the set exactly what was sent.
+
+- [ ] T035 [P] [US4] Write tests for `updateVerb` (`append`→`PATCH`, `overwrite`→`PUT`) in `test/core/updateVerb.test.ts`
+- [ ] T036 [US4] Implement `updateVerb` in `nodes/Attio/core/updateVerb.ts` (depends on T035)
+- [ ] T037 [US4] Add **Multiselect Mode** `options` param with **per-option `routing.request.method`** (Append→`PATCH`, Overwrite→`PUT`) in `record.description.ts`
+- [ ] T038 [US4] Add Record **Update** routing (url `=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}`, body via `buildValuesBody`; method delegated to the selected option)
+- [ ] T039 [US4] Add readable name + `action` text for Update
+- [ ] T040 [US4] **Verify-live**: Append (PATCH) retains existing + adds new; Overwrite (PUT) set equals sent (AS-C1/C2, SC-006)
+- [ ] T041 [US4] **AI-Agent tool-path check**: Update executes via the agent tool path
+
+**Checkpoint**: Append vs overwrite is explicit and correct — no silent data loss.
+
+---
+
+## Phase 6: User Story 3 - Upsert without duplicates (Priority: P2)
+
+**Goal**: A separate Upsert operation (collection-level PUT) keyed on a required `matching_attribute`.
+
+**Independent Test**: Run twice with the same matching value → one record (second updates); omit matching attribute → validation error before any request.
+
+- [ ] T042 [US3] Add **Matching Attribute** param (required) with pre-request validation (empty → fail before request) in `record.description.ts`; reuse `buildValuesBody`
+- [ ] T043 [US3] Add Record **Upsert** routing `PUT /v2/objects/{object}/records?matching_attribute=...` (collection-level, distinct from item PUT)
+- [ ] T044 [US3] Add readable name + `action` text for Upsert
+- [ ] T045 [US3] **Verify-live**: two runs with the same matching value → one record, second updates (AS-B1, SC-005); referenced records must pre-exist
+- [ ] T046 [US3] **Verify-live**: omitting `matching_attribute` → validation error pre-request (AS-B2)
+- [ ] T047 [US3] **AI-Agent tool-path check**: Upsert executes via the agent tool path
+
+**Checkpoint**: Idempotent upsert works; Update and Upsert remain distinct (two-PUT model).
+
+---
+
+## Phase 7: User Story 5 - Query, search & page (Priority: P2)
+
+**Goal**: Get Many (filter/sort/paginate) and cross-object Search, with a "Return All" auto-pager.
+
+**Independent Test**: Filter returns only matches; Return All pages through every matching record; Search returns cross-object hits.
+
+- [ ] T048 [P] [US5] Write tests for `buildQueryBody` (filter XOR filter_view_id; sorts; limit; offset) in `test/core/buildQueryBody.test.ts`
+- [ ] T049 [US5] Implement `buildQueryBody` in `nodes/Attio/core/buildQueryBody.ts` (depends on T048)
+- [ ] T050 [P] [US5] Write tests for `buildSearchBody` (query, objects[], limit, request_as default workspace) in `test/core/buildSearchBody.test.ts`
+- [ ] T051 [US5] Implement `buildSearchBody` in `nodes/Attio/core/buildSearchBody.ts` (depends on T050)
+- [ ] T052 [US5] Add Record **Get Many** routing `POST /v2/objects/{object}/records/query` + Filter (`json`), Sort (fixedCollection), Limit, **Return All** (offset pagination via request **body**)
+- [ ] T053 [US5] Add Record **Search** routing `POST /v2/objects/records/search` + Query, Objects (multiOptions `getObjects`), Request As (collection, default `{type:'workspace'}`, member impersonation advanced)
+- [ ] T054 [US5] Add readable names + `action` text for Get Many and Search
+- [ ] T055 [US5] **Verify-live**: filter returns only matching records (AS-D1)
+- [ ] T056 [US5] **Verify-live**: Return All pages `offset` until exhausted; count matches workspace (AS-D2, SC-007)
+- [ ] T057 [US5] **Verify-live**: Search `request_as.type: 'workspace'` works with a plain API token (research.md R3)
+- [ ] T058 [US5] **AI-Agent tool-path check**: Get Many executes via the agent tool path (SC-009)
+
+**Checkpoint**: Reading, filtering, full pagination, and cross-object search all work.
+
+---
+
+## Phase 8: Record Resource Completion - Delete & secondary reads (completes FR-003)
+
+**Goal**: Finish the 10-op Record matrix: Delete, List Attribute Values, List Entries.
+
+**Independent Test**: Delete returns a clear success indicator; secondary reads round-trip.
+
+- [ ] T059 [US2] Add Record **Delete** routing `DELETE /v2/objects/{object}/records/{record_id}` → synthesize `{ success: true, record_id }`
+- [ ] T060 [US2] **Verify-live**: Delete returns a success indicator despite an empty body (edge case)
+- [ ] T061 [US5] Add **List Attribute Values** routing `GET /v2/objects/{object}/records/{record_id}/attributes/{attribute}/values` + Attribute param (free text in v1)
+- [ ] T062 [US5] Add **List Entries** routing `GET /v2/objects/{object}/records/{record_id}/entries` (scope incl. `list_entry:read`, research.md R2)
+- [ ] T063 [US5] Add readable names + `action` text for Delete, List Attribute Values, List Entries
+- [ ] T064 [US5] **Verify-live**: Delete and both secondary reads round-trip
+- [ ] T065 Confirm all **10 Record operations** present and FR-003 Record group complete
+
+**Checkpoint**: Record resource (10 ops) complete.
+
+---
+
+## Phase 9: User Story 6 (Notes) - Log a note on a record (Priority: P3)
+
+**Goal**: The 4-op Note matrix, with Create linked to a parent record.
+
+**Independent Test**: Create a note with parent object + record → linked note returned; Get/Get Many/Delete round-trip.
+
+- [ ] T066 [P] [US6] Write tests for `buildNoteBody` (parent_object, parent_record_id, title, format, content; optional created_at/meeting_id) in `test/core/buildNoteBody.test.ts`
+- [ ] T067 [US6] Implement `buildNoteBody` in `nodes/Attio/core/buildNoteBody.ts` (depends on T066)
+- [ ] T068 [US6] Add Note **Create** routing `POST /v2/notes` + Parent Record ID, Title, Format (plaintext/markdown), Content, Additional Fields (created_at, meeting_id) in `nodes/Attio/descriptions/note.description.ts`
+- [ ] T069 [US6] Add Note **Get Many** `GET /v2/notes` (parent filters + Return All via querystring offset), **Get** `GET /v2/notes/{note_id}`, **Delete** `DELETE /v2/notes/{note_id}` → `{ success: true, note_id }`
+- [ ] T070 [US6] Add readable names + `action` text for all Note operations
+- [ ] T071 [US6] **Verify-live**: Note Create returns a note linked to the parent record (AS-E1)
+- [ ] T072 [US6] **Verify-live**: Note Get / Get Many / Delete round-trip
+- [ ] T073 [US6] **AI-Agent tool-path check**: Note Create executes via the agent tool path
+
+**Checkpoint**: Note resource (4 ops) complete.
+
+---
+
+## Phase 10: User Story 6 (Tasks) - Follow-up task on a record (Priority: P3)
+
+**Goal**: The 5-op Task matrix, with write-once content and a content-free Update surface.
+
+**Independent Test**: Create a linked task with an assignee email that resolves; Update has no content field and leaves content unchanged.
+
+- [ ] T074 [P] [US6] Write tests for `buildTaskCreateBody` (content + `format: 'plaintext'` hardcoded, deadline_at, is_completed, linked_records, assignees) in `test/core/buildTaskCreateBody.test.ts`
+- [ ] T075 [P] [US6] Write tests for `buildTaskUpdateBody` (**omits content**; deadline_at/is_completed/linked_records/assignees only) in `test/core/buildTaskUpdateBody.test.ts`
+- [ ] T076 [US6] Implement `buildTaskCreateBody` and `buildTaskUpdateBody` in `nodes/Attio/core/buildTaskBodies.ts` (depends on T074, T075). **Intentional structure**: two test files (T074, T075) cover the two functions, which live in one impl module `buildTaskBodies.ts` (per plan.md and data-model.md §3) — not a 1:1 file mapping.
+- [ ] T077 [US6] Add Task **Create** routing `POST /v2/tasks` + Content, Deadline At, Is Completed, Linked Records (fixedCollection: object dropdown + record id), Assignees (fixedCollection: email simple / member id advanced) in `nodes/Attio/descriptions/task.description.ts`
+- [ ] T078 [US6] Add Task **Update** routing `PATCH /v2/tasks/{task_id}` — **no Content field** (Principle VI)
+- [ ] T079 [US6] Add Task **Get** `GET /v2/tasks/{task_id}`, **Get Many** `GET /v2/tasks` (filters linked_object/linked_record_id/assignee/is_completed + Return All), **Delete** `DELETE /v2/tasks/{task_id}` → `{ success: true, task_id }`
+- [ ] T080 [US6] Add readable names + `action` text for all Task operations
+- [ ] T081 [US6] **Verify-live**: Task Create linked to the record, assignee-by-email resolves (AS-E2)
+- [ ] T082 [US6] **Verify-live**: Task Update surface has no content field; content unchanged after update (FR-14, research.md R5)
+- [ ] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip; **AI-Agent tool-path check**: Task Create executes
+
+**Checkpoint**: Task resource (5 ops) complete — all 19 operations exist.
+
+---
+
+## Phase 11: User Story 7 - Drive the node from an AI agent (Priority: P3)
+
+**Goal**: Confirm the consolidated AI-agent tool path across the canonical operations.
+
+**Independent Test**: From the agent tool path, run Create Record and Get Many and confirm both execute.
+
+- [ ] T084 [US7] **Verify-live**: AI-Agent tool path runs **Record Create AND Get Many** end-to-end (AS-F1, SC-009)
+- [ ] T085 [US7] Confirm all 19 operations expose `action` text and are selectable/usable as a tool
+
+**Checkpoint**: AI-agent compatibility validated.
+
+---
+
+## Phase 12: Polish & Cross-Cutting Concerns
+
+**Purpose**: Docs, verification scan, supply-chain and release-pipeline acceptance (brief §15, §18).
+
+- [ ] T086 [P] Write English-only `README.md`: operations table, credential setup (token path + per-operation scopes from research.md R2), example workflow, Nodrel support boundary
+- [ ] T087 [P] Ensure the credential field description lists the scope pairs per operation group (Principle IV)
+- [ ] T088 **Verify-live**: a 429 surfaces a rate-limit message and `Retry-After` is parsed as a **date**; README directs users to n8n Retry-On-Fail (research.md R4, NFR-10)
+- [ ] T089 Run `npx @n8n/scan-community-package n8n-nodes-attio` — passes (SC-008)
+- [ ] T090 `npm pack` and inspect the tarball: `dependencies` empty; zero runtime deps confirmed (SC-008, NFR-1)
+- [ ] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case)
+- [ ] T092 **Pipeline acceptance**: a `feat:` merge opens/updates a release-please PR; merging it creates the tag + GitHub Release; the Release event triggers `publish.yml` → npm publish with a visible provenance badge (brief §18.7)
+- [ ] T093 [P] Verify a non-conventional PR title fails the PR-title lint and cannot merge (brief §18.5)
+- [ ] T094 Run the full `quickstart.md` validation pass — every brief §15 verify-live gate checked
+- [ ] T095 [P] English-only audit (FR-016): review all user-facing strings — operation/field names, descriptions, help text, and the messages emitted by `formatAttioError` — confirming every string is English only (extends the docs/credential coverage of T086/T087 to runtime UI and error text)
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: T001 (Decision Gate 0) blocks T002 (scaffold) and everything after. CI/CD (T008–T012) stands up before any operation.
+- **Foundational (Phase 2)**: depends on Setup; **blocks all user stories**. Shared pure core (`formatAttioError`, `objectPath`) + node skeleton.
+- **User Stories (Phases 3–11)**: depend on Foundational. Recommended sequence follows the locked build order: US1 → US2 → US4 → US3 → US5 → (Record completion) → US6 Notes → US6 Tasks → US7.
+- **Polish (Phase 12)**: depends on all desired stories.
+
+### User Story Dependencies
+
+- **US1 (P1)**: after Foundational. No story dependencies. Provides the credential + dropdown every other story uses.
+- **US2 (P1)**: after US1 (needs the Object dropdown + credential). Provides `buildValuesBody`, reused by US3/US4.
+- **US4 (P2)**: after US2 (reuses `buildValuesBody`, Object + Record ID params).
+- **US3 (P2)**: after US2 (reuses `buildValuesBody`); independent of US4.
+- **US5 (P2)**: after US1 (needs Object dropdown); independent of US3/US4.
+- **US6 Notes / Tasks (P3)**: after US1 (Object dropdown); Notes and Tasks independent of each other but depend on records existing for live link checks.
+- **US7 (P3)**: after US2 and US5 (validates their tool paths).
+
+### Within Each Story
+
+- Pure-core tests (the `[P]` test task) MUST be written and FAIL before the matching implementation.
+- Pure function → routing/params → action text → verify-live → AI-tool check.
+- An operation is "done" only when tests pass, its verify-live gate is confirmed, and its AI-tool-path check passes.
+
+### Parallel Opportunities
+
+- Setup `[P]` config tasks (T004–T011) run in parallel after T003.
+- Foundational test tasks T015 and T017 run in parallel; T014 in parallel with them.
+- Within a story, the `[P]` test task can be authored alongside the prior story's verify-live work (different files).
+- US3, US4, and US5 are mutually independent once US2 lands — parallelizable across developers.
+- Polish `[P]` tasks (T086, T087, T091, T093, T095) run in parallel.
+
+---
+
+## Parallel Example: Foundational pure core
+
+```bash
+# Write the shared pure-core tests together (different files):
+Task: "Tests for formatAttioError in test/core/formatAttioError.test.ts"   # T015
+Task: "Tests for objectPath in test/core/objectPath.test.ts"               # T017
+# Then implement each (T016, T018) once its tests are red.
+```
+
+## Parallel Example: independent P2 stories after US2
+
+```bash
+# Once US2 (T027–T034) is merged, three developers can take:
+Developer A: US4 Record Update  (T035–T041)
+Developer B: US3 Record Upsert  (T042–T047)
+Developer C: US5 Get Many/Search (T048–T058)
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (US1 + US2)
+
+1. Phase 1 Setup & CI/CD (Decision Gate 0 first; pipeline green).
+2. Phase 2 Foundational (skeleton + shared pure core).
+3. Phase 3 US1 (credential + dropdown) → validate.
+4. Phase 4 US2 (Create + Get) → **STOP and validate the MVP**: token → created-and-read record, no slug typed.
+
+### Incremental Delivery
+
+US1+US2 (MVP) → US4 → US3 → US5 → Record completion → US6 Notes → US6 Tasks → US7 → Polish. Each operation merges through green CI and is verified live before the next begins.
+
+### Parallel Team Strategy
+
+After US2, split US3/US4/US5 across developers; Notes and Tasks can also proceed in parallel. The shared pure core and node skeleton (Phase 2) must be done first to avoid same-file conflicts in the descriptions modules.
+
+---
+
+## Notes
+
+- `[P]` = different files, no incomplete-task dependencies.
+- Every Record/Note/Task description edit touches its own `descriptions/*.ts` module — sequence edits within the same module; parallelize across modules.
+- Verify pure-core tests fail before implementing (Principle VIII).
+- No runtime dependency at any point (zero-dep gate, T008/T090).
+- Publish only via `publish.yml` provenance; never bump versions by hand or publish locally (Principle XIV).
+- Commit with Conventional Commits; the squash-merge PR title is what release-please reads.

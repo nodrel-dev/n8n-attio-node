@@ -1,0 +1,62 @@
+{
+  "name": "@nodrel/n8n-nodes-attio",
+  "version": "0.1.0",
+  "description": "n8n community action node for the Attio CRM REST API (Records, Notes, Tasks)",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "attio",
+    "crm"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/nodrel/n8n-nodes-attio",
+  "author": {
+    "name": "Nodrel"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nodrel/n8n-nodes-attio.git"
+  },
+  "engines": {
+    "node": ">=22.22"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/copyAssets.mjs",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/AttioApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Attio/Attio.node.js"
+    ]
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "overrides": {
+    "eslint": "^9.37.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "@n8n/node-cli": "^0.23.0",
+    "@types/jest": "^29.5.13",
+    "jest": "^29.7.0",
+    "lefthook": "^1.7.18",
+    "n8n-workflow": "^1.70.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3"
+  }
+}
