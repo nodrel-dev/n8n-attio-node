@@ -1,0 +1,11 @@
+# Local git hooks. commit-msg -> commitlint; pre-commit -> lint.
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --no-install commitlint --edit {1}
+
+pre-commit:
+  commands:
+    lint:
+      glob: "{nodes,credentials}/**/*.ts"
+      run: npm run lint

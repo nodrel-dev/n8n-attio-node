@@ -1,0 +1,27 @@
+# Publish only the compiled node. Everything else stays out of the tarball.
+# (package.json "files": ["dist"] is the primary allowlist; this is defence-in-depth.)
+*
+!dist/**
+!package.json
+!README.md
+!LICENSE
+
+# Never publish sources, specs, reference material, or tooling.
+src/
+nodes/
+credentials/
+test/
+scripts/
+specs/
+internal/
+attio-api-spec/
+.github/
+.specify/
+.claude/
+tsconfig.json
+jest.config.js
+commitlint.config.js
+lefthook.yml
+eslint.config.mjs
+release-please-config.json
+.release-please-manifest.json

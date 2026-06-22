@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Lint, scan, typecheck, build, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Scan community package
+        # @n8n/scan-community-package analyses the PUBLISHED package from the npm registry;
+        # it has no local/tarball mode. Before the first publish it is skipped (keeps the
+        # scaffold CI green); once published, the real scan runs and fails on findings (T089).
+        run: |
+          PKG="@nodrel/n8n-nodes-attio"
+          if npm view "$PKG" version >/dev/null 2>&1; then
+            npx -y @n8n/scan-community-package@latest "$PKG"
+          else
+            echo "::notice::$PKG is not published yet — skipping registry scan until first publish (T089)."
+          fi
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Zero-dependency gate
+        run: node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?1:0)"
+
+      - name: No env / no filesystem gate
+        run: |
+          if grep -rEn "process\.env|require\(['\"](node:)?fs['\"]\)|from ['\"](node:)?fs['\"]" nodes/; then
+            echo "::error::Forbidden process.env or filesystem usage found in nodes/ (FR-010 / Principle X)";
+            exit 1;
+          fi
+          echo "No process.env or fs usage in nodes/."
+
+  pr-title:
+    name: Conventional PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint PR title with commitlint
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "$PR_TITLE" | npx --no-install commitlint
