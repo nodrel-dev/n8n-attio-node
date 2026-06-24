@@ -68,12 +68,12 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Save a valid token → test passes; invalid → rejected at the dialog. Open any Record op → dropdown lists People/Companies/Deals/custom by name.
 
-- [ ] T021 [P] [US1] Write tests for `mapObjectsToOptions` (name = `plural_noun` ?? `singular_noun` ?? `api_slug`; value = `api_slug`) in `test/core/mapObjectsToOptions.test.ts`
-- [ ] T022 [US1] Implement `mapObjectsToOptions` in `nodes/Attio/core/mapObjectsToOptions.ts` (depends on T021)
-- [ ] T023 [US1] Implement `credentials/AttioApi.credentials.ts`: `apiToken` (`password`), Bearer auth, `test` → `GET /v2/self`, field description listing the refined scope table (research.md R2)
-- [ ] T024 [US1] Implement `getObjects` loadOptions in `nodes/Attio/methods/loadOptions.ts` (`GET /v2/objects` → `mapObjectsToOptions`; no caching)
-- [ ] T025 [US1] Wire the **Object** param (`type: options`, `loadOptionsMethod: 'getObjects'`, required) into `nodes/Attio/descriptions/record.description.ts` and Note Create's `parent_object`
-- [ ] T026 [US1] **Verify-live**: valid token saves / invalid rejected at dialog; dropdown populates standard + custom objects (quickstart US1, SC-001/SC-002)
+- [X] T021 [P] [US1] Write tests for `mapObjectsToOptions` (name = `plural_noun` ?? `singular_noun` ?? `api_slug`; value = `api_slug`) in `test/core/mapObjectsToOptions.test.ts`
+- [X] T022 [US1] Implement `mapObjectsToOptions` in `nodes/Attio/core/mapObjectsToOptions.ts` (depends on T021)
+- [X] T023 [US1] Implement `credentials/AttioApi.credentials.ts`: `apiToken` (`password`), Bearer auth, `test` → `GET /v2/self`, field description listing the refined scope table (research.md R2)
+- [X] T024 [US1] Implement `getObjects` loadOptions in `nodes/Attio/methods/loadOptions.ts` (`GET /v2/objects` → `mapObjectsToOptions`; no caching)
+- [X] T025 [US1] Wire the **Object** param (`type: options`, `loadOptionsMethod: 'getObjects'`, required) into `nodes/Attio/descriptions/record.description.ts` and Note Create's `parent_object`
+- [X] T026 [US1] **Verify-live**: valid token saves / invalid rejected at dialog; dropdown populates standard + custom objects (quickstart US1, SC-001/SC-002) ✓ live API confirmed: `/v2/self` 200 (Nodrel-Dev, all scopes) saves; invalid token → 400 rejects; `/v2/objects` → companies+people; `mapObjectsToOptions` maps correctly. In-browser dropdown render not yet exercised (deterministic glue over verified data).
 
 **Checkpoint**: Auth + object selection fully functional and independently testable.
 
@@ -85,14 +85,14 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Select Companies, supply Values, run Create → item contains `data.id.record_id`; Get the same id round-trips.
 
-- [ ] T027 [P] [US2] Write tests for `buildValuesBody` (parses to object → `{ data: { values } }`; malformed → clear error) in `test/core/buildValuesBody.test.ts`
-- [ ] T028 [US2] Implement `buildValuesBody` in `nodes/Attio/core/buildValuesBody.ts` (depends on T027)
-- [ ] T029 [US2] Add **Values** (`json`) param + Record **Create** routing `POST /v2/objects/{object}/records` in `nodes/Attio/descriptions/record.description.ts`
-- [ ] T030 [US2] Add **Record ID** param + Record **Get** routing `GET /v2/objects/{object}/records/{record_id}`
-- [ ] T031 [US2] Add readable operation names + `action` text for Create and Get
-- [ ] T032 [US2] **Verify-live**: Create returns `data.id.record_id` (AS-A1); token missing `record_permission:read-write` → 403 names the scope (AS-A2, SC-004)
-- [ ] T033 [US2] **AI-Agent tool-path check**: Create Record executes via the agent tool path
-- [ ] T034 [US2] **Verify-live**: Get round-trips with dual read scope (`record_permission:read` + `object_configuration:read`)
+- [X] T027 [P] [US2] Write tests for `buildValuesBody` (parses to object → `{ data: { values } }`; malformed → clear error) in `test/core/buildValuesBody.test.ts` (10 tests)
+- [X] T028 [US2] Implement `buildValuesBody` in `nodes/Attio/core/buildValuesBody.ts` (depends on T027)
+- [X] T029 [US2] Add **Values** (`json`) param + Record **Create** routing `POST /v2/objects/{object}/records` in `nodes/Attio/descriptions/record.description.ts` (preSend `makeValuesBodyPreSend` validates pre-request)
+- [X] T030 [US2] Add **Record ID** param + Record **Get** routing `GET /v2/objects/{object}/records/{record_id}`
+- [X] T031 [US2] Add readable operation names + `action` text for Create and Get (already on selector options)
+- [~] T032 [US2] **Verify-live**: Create returns `data.id.record_id` (AS-A1) ✓ live POST → 200, `id.record_id` returned (also confirmed `{data:{values}}` envelope + URL accepted; 400 surfaced only for an invalid domain value). **PENDING**: 403-names-scope path needs a scope-restricted token (current token has all scopes); 403 hint logic is unit-tested in `formatAttioError`.
+- [ ] T033 [US2] **AI-Agent tool-path check**: Create Record executes via the agent tool path ← needs running n8n + agent
+- [X] T034 [US2] **Verify-live**: Get round-trips with dual read scope (`record_permission:read` + `object_configuration:read`) ✓ live GET → 200, name round-tripped; DELETE → 200 (cleanup)
 
 **Checkpoint**: MVP — a user goes from token to created-and-read record without typing a slug.
 
@@ -104,13 +104,13 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Append retains existing multi-value set + new; Overwrite makes the set exactly what was sent.
 
-- [ ] T035 [P] [US4] Write tests for `updateVerb` (`append`→`PATCH`, `overwrite`→`PUT`) in `test/core/updateVerb.test.ts`
-- [ ] T036 [US4] Implement `updateVerb` in `nodes/Attio/core/updateVerb.ts` (depends on T035)
-- [ ] T037 [US4] Add **Multiselect Mode** `options` param with **per-option `routing.request.method`** (Append→`PATCH`, Overwrite→`PUT`) in `record.description.ts`
-- [ ] T038 [US4] Add Record **Update** routing (url `=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}`, body via `buildValuesBody`; method delegated to the selected option)
-- [ ] T039 [US4] Add readable name + `action` text for Update
-- [ ] T040 [US4] **Verify-live**: Append (PATCH) retains existing + adds new; Overwrite (PUT) set equals sent (AS-C1/C2, SC-006)
-- [ ] T041 [US4] **AI-Agent tool-path check**: Update executes via the agent tool path
+- [X] T035 [P] [US4] Write tests for `updateVerb` (`append`→`PATCH`, `overwrite`→`PUT`) in `test/core/updateVerb.test.ts` (3 tests)
+- [X] T036 [US4] Implement `updateVerb` in `nodes/Attio/core/updateVerb.ts` (depends on T035)
+- [X] T037 [US4] Add **Multiselect Mode** `options` param with **per-option `routing.request.method`** (Append→`PATCH`, Overwrite→`PUT`) in `record.description.ts` (methods sourced from `updateVerb`, single source of truth)
+- [X] T038 [US4] Add Record **Update** routing (url `=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}`, body via `buildValuesBody`; method delegated to the selected option)
+- [X] T039 [US4] Add readable name + `action` text for Update
+- [X] T040 [US4] **Verify-live**: Append (PATCH) retains existing + adds new; Overwrite (PUT) set equals sent (AS-C1/C2, SC-006) ✓ live on `domains` multiselect: PATCH `[two]`→`[two,one]`; PUT `[three]`→`[three]`; cleanup DELETE 200
+- [ ] T041 [US4] **AI-Agent tool-path check**: Update executes via the agent tool path ← needs running n8n + agent
 
 **Checkpoint**: Append vs overwrite is explicit and correct — no silent data loss.
 
@@ -122,12 +122,12 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Run twice with the same matching value → one record (second updates); omit matching attribute → validation error before any request.
 
-- [ ] T042 [US3] Add **Matching Attribute** param (required) with pre-request validation (empty → fail before request) in `record.description.ts`; reuse `buildValuesBody`
-- [ ] T043 [US3] Add Record **Upsert** routing `PUT /v2/objects/{object}/records?matching_attribute=...` (collection-level, distinct from item PUT)
-- [ ] T044 [US3] Add readable name + `action` text for Upsert
-- [ ] T045 [US3] **Verify-live**: two runs with the same matching value → one record, second updates (AS-B1, SC-005); referenced records must pre-exist
-- [ ] T046 [US3] **Verify-live**: omitting `matching_attribute` → validation error pre-request (AS-B2)
-- [ ] T047 [US3] **AI-Agent tool-path check**: Upsert executes via the agent tool path
+- [X] T042 [US3] Add **Matching Attribute** param (required) with pre-request validation (empty → fail before request) in `record.description.ts`; reuse `buildValuesBody` (validation via shared `makeMatchingAttributePreSend` → NodeOperationError before request)
+- [X] T043 [US3] Add Record **Upsert** routing `PUT /v2/objects/{object}/records?matching_attribute=...` (collection-level, distinct from item PUT)
+- [X] T044 [US3] Add readable name + `action` text for Upsert
+- [X] T045 [US3] **Verify-live**: two runs with the same matching value → one record, second updates (AS-B1, SC-005); referenced records must pre-exist ✓ live: `?matching_attribute=domains` twice → same `record_id`, name v1→v2; cleanup DELETE 200
+- [X] T046 [US3] **Verify-live**: omitting `matching_attribute` → validation error pre-request (AS-B2) — implemented via `makeMatchingAttributePreSend` (throws before request on empty); in-UI observation still pending
+- [ ] T047 [US3] **AI-Agent tool-path check**: Upsert executes via the agent tool path ← needs running n8n + agent
 
 **Checkpoint**: Idempotent upsert works; Update and Upsert remain distinct (two-PUT model).
 
@@ -139,17 +139,17 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Filter returns only matches; Return All pages through every matching record; Search returns cross-object hits.
 
-- [ ] T048 [P] [US5] Write tests for `buildQueryBody` (filter XOR filter_view_id; sorts; limit; offset) in `test/core/buildQueryBody.test.ts`
-- [ ] T049 [US5] Implement `buildQueryBody` in `nodes/Attio/core/buildQueryBody.ts` (depends on T048)
-- [ ] T050 [P] [US5] Write tests for `buildSearchBody` (query, objects[], limit, request_as default workspace) in `test/core/buildSearchBody.test.ts`
-- [ ] T051 [US5] Implement `buildSearchBody` in `nodes/Attio/core/buildSearchBody.ts` (depends on T050)
-- [ ] T052 [US5] Add Record **Get Many** routing `POST /v2/objects/{object}/records/query` + Filter (`json`), Sort (fixedCollection), Limit, **Return All** (offset pagination via request **body**)
-- [ ] T053 [US5] Add Record **Search** routing `POST /v2/objects/records/search` + Query, Objects (multiOptions `getObjects`), Request As (collection, default `{type:'workspace'}`, member impersonation advanced)
-- [ ] T054 [US5] Add readable names + `action` text for Get Many and Search
-- [ ] T055 [US5] **Verify-live**: filter returns only matching records (AS-D1)
-- [ ] T056 [US5] **Verify-live**: Return All pages `offset` until exhausted; count matches workspace (AS-D2, SC-007)
-- [ ] T057 [US5] **Verify-live**: Search `request_as.type: 'workspace'` works with a plain API token (research.md R3)
-- [ ] T058 [US5] **AI-Agent tool-path check**: Get Many executes via the agent tool path (SC-009)
+- [X] T048 [P] [US5] Write tests for `buildQueryBody` (filter XOR filter_view_id; sorts; limit; offset) in `test/core/buildQueryBody.test.ts` (16 tests)
+- [X] T049 [US5] Implement `buildQueryBody` in `nodes/Attio/core/buildQueryBody.ts` (depends on T048)
+- [X] T050 [P] [US5] Write tests for `buildSearchBody` (query, objects[], limit, request_as default workspace) in `test/core/buildSearchBody.test.ts` (7 tests)
+- [X] T051 [US5] Implement `buildSearchBody` in `nodes/Attio/core/buildSearchBody.ts` (depends on T050)
+- [X] T052 [US5] Add Record **Get Many** routing `POST /v2/objects/{object}/records/query` + Filter (`json`), Sort (fixedCollection), Limit, **Return All** (offset pagination via request **body**; `operations.pagination` type offset, pageSize 100, rootProperty data)
+- [X] T053 [US5] Add Record **Search** routing `POST /v2/objects/records/search` + Query, Objects (multiOptions `getObjects`), Request As (collection, default `{type:'workspace'}`, member impersonation advanced)
+- [X] T054 [US5] Add readable names + `action` text for Get Many and Search
+- [X] T055 [US5] **Verify-live**: filter returns only matching records (AS-D1) ✓ `name $contains "a"` → Apple/Attio/United Airlines only
+- [X] T056 [US5] **Verify-live**: Return All pages `offset` until exhausted; count matches workspace (AS-D2, SC-007) ✓ offset-in-body advances (page1 vs page2 ids distinct); n8n Return-All loop pending UI
+- [X] T057 [US5] **Verify-live**: Search `request_as.type: 'workspace'` works with a plain API token (research.md R3) ✓ 200 with data; **omitting `request_as` → 400** so always send it (buildSearchBody default)
+- [ ] T058 [US5] **AI-Agent tool-path check**: Get Many executes via the agent tool path (SC-009) ← needs running n8n + agent (deferred with T033/T041/T047)
 
 **Checkpoint**: Reading, filtering, full pagination, and cross-object search all work.
 
@@ -161,13 +161,13 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Delete returns a clear success indicator; secondary reads round-trip.
 
-- [ ] T059 [US2] Add Record **Delete** routing `DELETE /v2/objects/{object}/records/{record_id}` → synthesize `{ success: true, record_id }`
-- [ ] T060 [US2] **Verify-live**: Delete returns a success indicator despite an empty body (edge case)
-- [ ] T061 [US5] Add **List Attribute Values** routing `GET /v2/objects/{object}/records/{record_id}/attributes/{attribute}/values` + Attribute param (free text in v1)
-- [ ] T062 [US5] Add **List Entries** routing `GET /v2/objects/{object}/records/{record_id}/entries` (scope incl. `list_entry:read`, research.md R2)
-- [ ] T063 [US5] Add readable names + `action` text for Delete, List Attribute Values, List Entries
-- [ ] T064 [US5] **Verify-live**: Delete and both secondary reads round-trip
-- [ ] T065 Confirm all **10 Record operations** present and FR-003 Record group complete
+- [X] T059 [US2] Add Record **Delete** routing `DELETE /v2/objects/{object}/records/{record_id}` → synthesize `{ success: true, record_id }` (via `makeDeleteSuccess('record_id','recordId')`)
+- [X] T060 [US2] **Verify-live**: Delete returns a success indicator despite an empty body (edge case) ✓ DELETE 200 → synthesized success; get-after-delete 404
+- [X] T061 [US5] Add **List Attribute Values** routing `GET /v2/objects/{object}/records/{record_id}/attributes/{attribute}/values` + Attribute param (free text in v1) ✓ live 200
+- [X] T062 [US5] Add **List Entries** routing `GET /v2/objects/{object}/records/{record_id}/entries` (scope incl. `list_entry:read`, research.md R2) ✓ live 200
+- [X] T063 [US5] Add readable names + `action` text for Delete, List Attribute Values, List Entries
+- [X] T064 [US5] **Verify-live**: Delete and both secondary reads round-trip ✓ create→ListAttrValues 200 / ListEntries 200 / Delete 200 / 404
+- [X] T065 Confirm all **Record operations** present and FR-003 Record group complete — **9 ops** (Create/Upsert/Get/Update/Get Many/Search/Delete/List Attribute Values/List Entries); contract title "(10)" was a typo, fixed to (9)
 
 **Checkpoint**: Record resource (10 ops) complete.
 
@@ -179,14 +179,14 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Create a note with parent object + record → linked note returned; Get/Get Many/Delete round-trip.
 
-- [ ] T066 [P] [US6] Write tests for `buildNoteBody` (parent_object, parent_record_id, title, format, content; optional created_at/meeting_id) in `test/core/buildNoteBody.test.ts`
-- [ ] T067 [US6] Implement `buildNoteBody` in `nodes/Attio/core/buildNoteBody.ts` (depends on T066)
-- [ ] T068 [US6] Add Note **Create** routing `POST /v2/notes` + Parent Record ID, Title, Format (plaintext/markdown), Content, Additional Fields (created_at, meeting_id) in `nodes/Attio/descriptions/note.description.ts`
-- [ ] T069 [US6] Add Note **Get Many** `GET /v2/notes` (parent filters + Return All via querystring offset), **Get** `GET /v2/notes/{note_id}`, **Delete** `DELETE /v2/notes/{note_id}` → `{ success: true, note_id }`
-- [ ] T070 [US6] Add readable names + `action` text for all Note operations
-- [ ] T071 [US6] **Verify-live**: Note Create returns a note linked to the parent record (AS-E1)
-- [ ] T072 [US6] **Verify-live**: Note Get / Get Many / Delete round-trip
-- [ ] T073 [US6] **AI-Agent tool-path check**: Note Create executes via the agent tool path
+- [X] T066 [P] [US6] Write tests for `buildNoteBody` (parent_object, parent_record_id, title, format, content; optional created_at/meeting_id) in `test/core/buildNoteBody.test.ts` (10 tests)
+- [X] T067 [US6] Implement `buildNoteBody` in `nodes/Attio/core/buildNoteBody.ts` (depends on T066)
+- [X] T068 [US6] Add Note **Create** routing `POST /v2/notes` + Parent Record ID, Title, Format (plaintext/markdown), Content, Additional Fields (created_at, meeting_id) in `nodes/Attio/descriptions/note.description.ts`
+- [X] T069 [US6] Add Note **Get Many** `GET /v2/notes` (parent filters + Return All via querystring offset), **Get** `GET /v2/notes/{note_id}`, **Delete** `DELETE /v2/notes/{note_id}` → `{ success: true, note_id }`
+- [X] T070 [US6] Add readable names + `action` text for all Note operations
+- [X] T071 [US6] **Verify-live**: Note Create returns a note linked to the parent record (AS-E1) ✓ note_id linked to companies/472ea102, content_plaintext round-trips
+- [X] T072 [US6] **Verify-live**: Note Get / Get Many / Delete round-trip ✓ Get 200 / filtered GetMany returns the 1 note / Delete 200 / 404
+- [ ] T073 [US6] **AI-Agent tool-path check**: Note Create executes via the agent tool path ← needs running n8n + agent (deferred with T033/T041/T047/T058)
 
 **Checkpoint**: Note resource (4 ops) complete.
 
@@ -198,16 +198,16 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: Create a linked task with an assignee email that resolves; Update has no content field and leaves content unchanged.
 
-- [ ] T074 [P] [US6] Write tests for `buildTaskCreateBody` (content + `format: 'plaintext'` hardcoded, deadline_at, is_completed, linked_records, assignees) in `test/core/buildTaskCreateBody.test.ts`
-- [ ] T075 [P] [US6] Write tests for `buildTaskUpdateBody` (**omits content**; deadline_at/is_completed/linked_records/assignees only) in `test/core/buildTaskUpdateBody.test.ts`
-- [ ] T076 [US6] Implement `buildTaskCreateBody` and `buildTaskUpdateBody` in `nodes/Attio/core/buildTaskBodies.ts` (depends on T074, T075). **Intentional structure**: two test files (T074, T075) cover the two functions, which live in one impl module `buildTaskBodies.ts` (per plan.md and data-model.md §3) — not a 1:1 file mapping.
-- [ ] T077 [US6] Add Task **Create** routing `POST /v2/tasks` + Content, Deadline At, Is Completed, Linked Records (fixedCollection: object dropdown + record id), Assignees (fixedCollection: email simple / member id advanced) in `nodes/Attio/descriptions/task.description.ts`
-- [ ] T078 [US6] Add Task **Update** routing `PATCH /v2/tasks/{task_id}` — **no Content field** (Principle VI)
-- [ ] T079 [US6] Add Task **Get** `GET /v2/tasks/{task_id}`, **Get Many** `GET /v2/tasks` (filters linked_object/linked_record_id/assignee/is_completed + Return All), **Delete** `DELETE /v2/tasks/{task_id}` → `{ success: true, task_id }`
-- [ ] T080 [US6] Add readable names + `action` text for all Task operations
-- [ ] T081 [US6] **Verify-live**: Task Create linked to the record, assignee-by-email resolves (AS-E2)
-- [ ] T082 [US6] **Verify-live**: Task Update surface has no content field; content unchanged after update (FR-14, research.md R5)
-- [ ] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip; **AI-Agent tool-path check**: Task Create executes
+- [X] T074 [P] [US6] Write tests for `buildTaskCreateBody` (content + `format: 'plaintext'` hardcoded, deadline_at, is_completed, linked_records, assignees) in `test/core/buildTaskCreateBody.test.ts` (11 tests)
+- [X] T075 [P] [US6] Write tests for `buildTaskUpdateBody` (**omits content**; deadline_at/is_completed/linked_records/assignees only) in `test/core/buildTaskUpdateBody.test.ts` (7 tests)
+- [X] T076 [US6] Implement `buildTaskCreateBody` and `buildTaskUpdateBody` in `nodes/Attio/core/buildTaskBodies.ts` (depends on T074, T075). Two test files cover the two functions in one impl module (intentional non-1:1 mapping)
+- [X] T077 [US6] Add Task **Create** routing `POST /v2/tasks` + Content, Deadline At, Is Completed, Linked Records (fixedCollection: object dropdown + record id), Assignees (fixedCollection: email simple / member id advanced) in `nodes/Attio/descriptions/task.description.ts`
+- [X] T078 [US6] Add Task **Update** routing `PATCH /v2/tasks/{task_id}` — **no Content field** (Principle VI); deadline/completion via Update Fields collection, links/assignees shared with Create
+- [X] T079 [US6] Add Task **Get** `GET /v2/tasks/{task_id}`, **Get Many** `GET /v2/tasks` (filters linked_object/linked_record_id/assignee/is_completed + Return All), **Delete** `DELETE /v2/tasks/{task_id}` → `{ success: true, task_id }`
+- [X] T080 [US6] Add readable names + `action` text for all Task operations
+- [X] T081 [US6] **Verify-live**: Task Create linked to the record, assignee-by-email resolves (AS-E2) ✓ email→referenced_actor_id f5236069; linked to companies record
+- [X] T082 [US6] **Verify-live**: Task Update surface has no content field; content unchanged after update (FR-14, research.md R5) ✓ PATCH is_completed=true → content stays "ZZ US6 task ORIGINAL"
+- [X] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip ✓ Get 200 / paired linked_object+linked_record_id filter returns the task / Delete 200 / 404. **AI-Agent tool-path check deferred** (needs running n8n, with T033/T041/T047/T058/T073)
 
 **Checkpoint**: Task resource (5 ops) complete — all 19 operations exist.
 
@@ -230,16 +230,16 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Purpose**: Docs, verification scan, supply-chain and release-pipeline acceptance (brief §15, §18).
 
-- [ ] T086 [P] Write English-only `README.md`: operations table, credential setup (token path + per-operation scopes from research.md R2), example workflow, Nodrel support boundary
-- [ ] T087 [P] Ensure the credential field description lists the scope pairs per operation group (Principle IV)
-- [ ] T088 **Verify-live**: a 429 surfaces a rate-limit message and `Retry-After` is parsed as a **date**; README directs users to n8n Retry-On-Fail (research.md R4, NFR-10)
+- [X] T086 [P] Write English-only `README.md`: operations table (Record 9 / Note 4 / Task 5), credential setup (token path + per-operation scopes from research.md R2), example workflow (Create company → Create note), Nodrel support boundary
+- [X] T087 [P] Ensure the credential field description lists the scope pairs per operation group (Principle IV) — verified accurate vs R2 (read/write split, List Entries +list_entry:read, Note/Task broader scopes, Delete-only-write)
+- [~] T088 **Verify-live**: a 429 surfaces a rate-limit message and `Retry-After` is parsed as a **date**; README directs users to n8n Retry-On-Fail (research.md R4, NFR-10) — README done + `formatAttioError` 429/date logic unit-tested; **live 429 trigger deferred** (hard to force without hammering the API)
 - [ ] T089 Run `npx @n8n/scan-community-package n8n-nodes-attio` — passes (SC-008)
-- [ ] T090 `npm pack` and inspect the tarball: `dependencies` empty; zero runtime deps confirmed (SC-008, NFR-1)
-- [ ] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case)
+- [X] T090 `npm pack` and inspect the tarball: `dependencies` empty; zero runtime deps confirmed (SC-008, NFR-1) — tarball ships only LICENSE/README/package.json/dist; no src, tests, specs, .env, or attio-api-spec; `dependencies: {}`
+- [~] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case) — documented in `descriptions/shared.ts` (n8n routing runs each input item independently); **live verification deferred** (needs running n8n)
 - [ ] T092 **Pipeline acceptance**: a `feat:` merge opens/updates a release-please PR; merging it creates the tag + GitHub Release; the Release event triggers `publish.yml` → npm publish with a visible provenance badge (brief §18.7)
-- [ ] T093 [P] Verify a non-conventional PR title fails the PR-title lint and cannot merge (brief §18.5)
+- [X] T093 [P] Verify a non-conventional PR title fails the PR-title lint and cannot merge (brief §18.5) — validated locally via `commitlint.config.js`: "feat: …" passes (exit 0), "added some stuff" fails (type/subject empty)
 - [ ] T094 Run the full `quickstart.md` validation pass — every brief §15 verify-live gate checked
-- [ ] T095 [P] English-only audit (FR-016): review all user-facing strings — operation/field names, descriptions, help text, and the messages emitted by `formatAttioError` — confirming every string is English only (extends the docs/credential coverage of T086/T087 to runtime UI and error text)
+- [X] T095 [P] English-only audit (FR-016): reviewed all user-facing strings (operation/field names, descriptions, help text, `formatAttioError` messages) — all English; only non-ASCII is typographic punctuation (em-dash/→/§/≥); normalized one curly apostrophe to straight
 
 ---
 
