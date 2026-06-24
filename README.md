@@ -4,9 +4,9 @@ An [n8n](https://n8n.io) community **action node** for the [Attio](https://attio
 Connects with a single workspace API token and works with Records, Notes, and Tasks. Also usable as
 an AI-Agent tool.
 
-> **Status:** in active development. The operations table below is filled in as each operation lands
-> and is verified live (see `specs/001-attio-action-node/`). This node has **zero runtime
-> dependencies** and never reads environment variables or the filesystem.
+> **Status:** all three resources are implemented and verified live against a real workspace
+> (see `specs/001-attio-action-node/`). This node has **zero runtime dependencies** and never reads
+> environment variables or the filesystem.
 
 ## Installation
 
@@ -32,14 +32,77 @@ works the first time.
 | Record Get / Get Many / Search / List Attribute Values | `record_permission:read` + `object_configuration:read` |
 | Record List Entries | `record_permission:read` + `object_configuration:read` + `list_entry:read` |
 | Object dropdown (`GET /v2/objects`) | `object_configuration:read` |
-| Note Create / Get / Get Many | `note:*` + `object_configuration:read` + `record_permission:read` |
+| Note Create | `note:read-write` + `object_configuration:read` + `record_permission:read` |
+| Note Get / Get Many | `note:read` + `object_configuration:read` + `record_permission:read` |
 | Note Delete | `note:read-write` |
-| Task Create / Update / Get / Get Many | `task:*` + `object_configuration:read` + `record_permission:read` + `user_management:read` |
+| Task Create / Update | `task:read-write` + `object_configuration:read` + `record_permission:read` + `user_management:read` |
+| Task Get / Get Many | `task:read` + `object_configuration:read` + `record_permission:read` + `user_management:read` |
 | Task Delete | `task:read-write` |
 
 ## Operations
 
-_Filled in per operation as each lands (Record → Note → Task). See `specs/001-attio-action-node/`._
+Pick a **Resource** (Record, Note, or Task), then an **Operation**. Every operation also exposes an
+`action` label so the node can be used as an **AI-Agent tool**. The **Object** dropdown is populated
+live from your workspace; you can also supply an object slug or ID via an expression.
+
+### Record (9)
+
+| Operation | What it does | Attio endpoint |
+|---|---|---|
+| Create | Create a record from a JSON **Values** object | `POST /v2/objects/{object}/records` |
+| Create or Update | Upsert, matching on an attribute slug (no duplicates) | `PUT /v2/objects/{object}/records?matching_attribute=…` |
+| Get | Fetch one record by ID | `GET /v2/objects/{object}/records/{record_id}` |
+| Update | Update a record; **Multiselect Mode** = Append (PATCH) or Overwrite (PUT) | `PATCH` / `PUT …/records/{record_id}` |
+| Get Many | Filter (JSON or saved view), sort, paginate; **Return All** auto-pages | `POST /v2/objects/{object}/records/query` |
+| Search | Cross-object free-text search | `POST /v2/objects/records/search` |
+| Delete | Delete a record (returns `{ success, record_id }`) | `DELETE …/records/{record_id}` |
+| List Attribute Values | Historical values for one attribute | `GET …/records/{record_id}/attributes/{attribute}/values` |
+| List Entries | List entries that reference the record | `GET …/records/{record_id}/entries` |
+
+**Values** is a JSON object of attribute slugs → values, e.g. `{"name": "Acme", "domains": ["acme.com"]}`.
+For **Update**, _Append_ keeps existing multiselect values and adds the new ones; _Overwrite_ replaces the
+set so it equals exactly what you send.
+
+### Note (4)
+
+| Operation | What it does | Attio endpoint |
+|---|---|---|
+| Create | Create a note linked to a parent record (Plaintext or Markdown) | `POST /v2/notes` |
+| Get | Fetch one note by ID | `GET /v2/notes/{note_id}` |
+| Get Many | List notes, optionally filtered by parent object/record; **Return All** | `GET /v2/notes` |
+| Delete | Delete a note (returns `{ success, note_id }`) | `DELETE /v2/notes/{note_id}` |
+
+### Task (5)
+
+| Operation | What it does | Attio endpoint |
+|---|---|---|
+| Create | Create a task; link records and assign by **email** or member ID | `POST /v2/tasks` |
+| Update | Update deadline / completion / links / assignees — **content is write-once** | `PATCH /v2/tasks/{task_id}` |
+| Get | Fetch one task by ID | `GET /v2/tasks/{task_id}` |
+| Get Many | List tasks, filtered by assignee / completion / linked record; **Return All** | `GET /v2/tasks` |
+| Delete | Delete a task (returns `{ success, task_id }`) | `DELETE /v2/tasks/{task_id}` |
+
+Task **content is set only at creation** and cannot be changed later, so the Update surface has no
+Content field. Assignee **email** is resolved to a workspace member server-side; a member ID is the
+advanced alternative. To filter Get Many by a linked record, provide **both** the Linked Object and
+Linked Record ID (Attio requires them together).
+
+## Example workflow
+
+Create a company, then attach a note to it:
+
+1. **Attio → Record → Create**
+   - Object: `Companies`
+   - Values: `{ "name": "Acme", "domains": ["acme.com"] }`
+2. **Attio → Note → Create**
+   - Parent Object: `Companies`
+   - Parent Record ID: `={{ $json.id.record_id }}` (from step 1)
+   - Title: `Imported from n8n`
+   - Format: `Plaintext`
+   - Content: `Created by an automated workflow.`
+
+The same pattern drives an **AI Agent**: add this node as a tool and the agent can call e.g.
+_Record → Create_ and _Record → Get Many_ by their action names.
 
 ## Rate limiting
 

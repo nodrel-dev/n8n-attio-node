@@ -4,6 +4,7 @@ import { NodeConnectionTypes } from 'n8n-workflow';
 import { recordDescription } from './descriptions/record.description';
 import { noteDescription } from './descriptions/note.description';
 import { taskDescription } from './descriptions/task.description';
+import { getObjects } from './methods/loadOptions';
 
 /**
  * Attio — declarative-style n8n action node (Principle II).
@@ -31,9 +32,12 @@ export class Attio implements INodeType {
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
-		// The `attioApi` credential (and `credentials: [...]` here) is wired in US1 (T023),
-		// together with its `/v2/self` test. Declaring it before the credential file exists
-		// would fail the community-node credential-reuse lint, so it is deferred.
+		credentials: [
+			{
+				name: 'attioApi',
+				required: true,
+			},
+		],
 		requestDefaults: {
 			baseURL: 'https://api.attio.com',
 			headers: {
@@ -61,5 +65,11 @@ export class Attio implements INodeType {
 			...noteDescription,
 			...taskDescription,
 		],
+	};
+
+	methods = {
+		loadOptions: {
+			getObjects,
+		},
 	};
 }

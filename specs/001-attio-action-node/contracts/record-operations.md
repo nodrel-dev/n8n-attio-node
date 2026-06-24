@@ -1,4 +1,4 @@
-# Contract: Record operations (10)
+# Contract: Record operations (9)
 
 Scopes: writes = `record_permission:read-write` + `object_configuration:read`; reads = `record_permission:read` + `object_configuration:read` (List Entries also `list_entry:read`). See research.md R2.
 
