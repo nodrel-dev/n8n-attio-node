@@ -1,4 +1,4 @@
-# @nodrel/n8n-nodes-attio
+# @nodrel-dev/n8n-nodes-attio
 
 An [n8n](https://n8n.io) community **action node** for the [Attio](https://attio.com) CRM REST API (v2).
 Connects with a single workspace API token and works with Records, Notes, and Tasks. Also usable as
@@ -10,7 +10,7 @@ an AI-Agent tool.
 
 ## Installation
 
-In n8n: **Settings → Community Nodes → Install**, then enter `@nodrel/n8n-nodes-attio`.
+In n8n: **Settings → Community Nodes → Install**, then enter `@nodrel-dev/n8n-nodes-attio`.
 
 Requires Node.js **>= 22.22** (self-hosted n8n).
 
