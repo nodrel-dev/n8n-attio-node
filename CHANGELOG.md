@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.1...v0.2.2) (2026-06-26)
+
+
+### Bug Fixes
+
+* point repository and homepage URLs at nodrel-dev/n8n-attio-node ([#7](https://github.com/nodrel-dev/n8n-attio-node/issues/7)) ([5926770](https://github.com/nodrel-dev/n8n-attio-node/commit/5926770d08dae3cf122001b13a2399179ae7806d))
+
 ## [0.2.1](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.0...v0.2.1) (2026-06-26)
 
 
