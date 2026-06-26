@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.2...v0.2.3) (2026-06-26)
+
+
+### Bug Fixes
+
+* satisfy n8n community-node lint (author email, drop overrides) ([#9](https://github.com/nodrel-dev/n8n-attio-node/issues/9)) ([ef97d52](https://github.com/nodrel-dev/n8n-attio-node/commit/ef97d52d86fa5e09fe29b24a3c415626d1bb07aa))
+
 ## [0.2.2](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.1...v0.2.2) (2026-06-26)
 
 
