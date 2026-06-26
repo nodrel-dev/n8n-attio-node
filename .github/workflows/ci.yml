@@ -32,7 +32,7 @@ jobs:
         # it has no local/tarball mode. Before the first publish it is skipped (keeps the
         # scaffold CI green); once published, the real scan runs and fails on findings (T089).
         run: |
-          PKG="@nodrel/n8n-nodes-attio"
+          PKG="@nodrel-dev/n8n-nodes-attio"
           if npm view "$PKG" version >/dev/null 2>&1; then
             npx -y @n8n/scan-community-package@latest "$PKG"
           else
