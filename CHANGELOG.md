@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.0...v0.2.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* correct npm scope to [@nodrel-dev](https://github.com/nodrel-dev) to match the npm org ([#5](https://github.com/nodrel-dev/n8n-attio-node/issues/5)) ([a040dd3](https://github.com/nodrel-dev/n8n-attio-node/commit/a040dd3d03828fbfd3ca31ade3ae530c5820c92c))
+
 ## [0.2.0](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.1.0...v0.2.0) (2026-06-26)
 
 
