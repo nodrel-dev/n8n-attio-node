@@ -1,6 +1,7 @@
 name: publish
 
-# Publishes to npm with build provenance via OIDC Trusted Publishing.
+# Publishes to npm with build provenance. Authenticates with the NPM_TOKEN
+# automation token (repo secret); provenance attestation still uses OIDC (id-token).
 # Triggered ONLY by a GitHub Release published by release-please.
 # Never publish from a local machine; never bump the version by hand.
 on:
@@ -31,3 +32,5 @@ jobs:
 
       - name: Publish with provenance
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
