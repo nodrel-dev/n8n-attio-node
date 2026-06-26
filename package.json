@@ -11,7 +11,8 @@
   "license": "MIT",
   "homepage": "https://github.com/nodrel-dev/n8n-attio-node",
   "author": {
-    "name": "Nodrel"
+    "name": "Nodrel",
+    "email": "kyletully317@gmail.com"
   },
   "repository": {
     "type": "git",
@@ -44,9 +45,6 @@
   "dependencies": {},
   "peerDependencies": {
     "n8n-workflow": "*"
-  },
-  "overrides": {
-    "eslint": "^9.37.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",
