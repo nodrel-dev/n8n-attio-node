@@ -1,6 +1,6 @@
 {
   "name": "@nodrel/n8n-nodes-attio",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "n8n community action node for the Attio CRM REST API (Records, Notes, Tasks)",
   "keywords": [
     "n8n-community-node-package",
