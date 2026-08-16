@@ -21,7 +21,7 @@ export class Attio implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Attio',
 		name: 'attio',
-		icon: 'file:attio.svg',
+		icon: { light: 'file:attio.svg', dark: 'file:attio.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',

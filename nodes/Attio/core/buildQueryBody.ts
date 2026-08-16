@@ -13,6 +13,8 @@
  *     n8n's offset pagination for "Return All").
  */
 
+import { tryParseJson } from './tryParseJson';
+
 export interface QuerySort {
 	attribute: string;
 	direction: string;
@@ -93,11 +95,11 @@ function parseFilterString(raw: string): unknown {
 	if (!raw.trim()) {
 		return undefined;
 	}
-	try {
-		return JSON.parse(raw);
-	} catch {
+	const result = tryParseJson(raw);
+	if (!result.ok) {
 		throw new Error('Filter must be valid JSON — could not parse the provided string.');
 	}
+	return result.value;
 }
 
 /** Keeps only sort rows with a non-blank attribute. */

@@ -9,6 +9,8 @@
  * non-object payload is rejected before any request is made.
  */
 
+import { tryParseJson } from './tryParseJson';
+
 export interface AttioValuesBody {
 	data: { values: Record<string, unknown> };
 }
@@ -29,11 +31,11 @@ function parseJsonString(raw: string): unknown {
 	if (!raw.trim()) {
 		return {};
 	}
-	try {
-		return JSON.parse(raw);
-	} catch {
+	const result = tryParseJson(raw);
+	if (!result.ok) {
 		throw new Error('Values must be valid JSON — could not parse the provided string.');
 	}
+	return result.value;
 }
 
 /** True only for non-null, non-array plain objects. */

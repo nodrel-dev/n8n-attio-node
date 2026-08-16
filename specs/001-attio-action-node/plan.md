@@ -6,7 +6,7 @@
 
 ## Summary
 
-Build `n8n-nodes-attio`, a verification-track n8n community **action node** that talks directly to the Attio REST API v2 using a single workspace API token. v1 covers three resources — Record (10 ops), Note (4 ops), Task (5 ops) = 19 operations — plus a dynamic Object dropdown sourced from `GET /v2/objects`. The node is **declarative-style** (`requestDefaults` + per-operation `routing`), with **zero runtime dependencies**, a `GET /v2/self` credential test, faithful Attio error surfacing, and a small framework-free pure core that is unit-tested before any wiring.
+Build `n8n-nodes-attio`, a verification-track n8n community **action node** that talks directly to the Attio REST API v2 using a single workspace API token. v1 covers three resources — Record (9 ops), Note (4 ops), Task (5 ops) = 18 operations — plus a dynamic Object dropdown sourced from `GET /v2/objects`. The node is **declarative-style** (`requestDefaults` + per-operation `routing`), with **zero runtime dependencies**, a `GET /v2/self` credential test, faithful Attio error surfacing, and a small framework-free pure core that is unit-tested before any wiring.
 
 **Central open mechanism (decision 8) — RESOLVED declaratively.** Verified against n8n-core `routing-node.js`: an `options`-type parameter's individual options may each carry their own `routing`, which n8n deep-merges (lodash) into the request when selected. The Record Update "Multiselect Mode" selector therefore switches the verb with **no programmatic `execute`** — `Append` option → `routing.request.method: 'PATCH'`, `Overwrite` option → `'PUT'`. The whole node stays declarative; the only programmatic surface is the `getObjects` `loadOptions` method (allowed, not a runtime dependency).
 
@@ -30,7 +30,7 @@ Release automation follows the locked section-18 design: `release-please` (actio
 
 **Constraints**: Declarative-first (NFR-3); zero deps; English-only interface and docs (NFR-5); secret hygiene — token is a `password` field, never logged/echoed (NFR-9); provenance-only publishing (NFR-7); `values` and `filter` are raw JSON in v1 (locked).
 
-**Scale/Scope**: 1 credential type, 1 node, 3 resources, 19 operations, 1 `loadOptions` method, ~10 pure-core functions, 3 GitHub Actions workflows.
+**Scale/Scope**: 1 credential type, 1 node, 3 resources, 18 operations, 1 `loadOptions` method, ~10 pure-core functions, 3 GitHub Actions workflows.
 
 ## Constitution Check
 
