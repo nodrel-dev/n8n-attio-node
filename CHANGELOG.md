@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.5](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.4...v0.2.5) (2026-08-16)
+
+
+### Documentation
+
+* record live n8n verification of agent tool-path gates ([#13](https://github.com/nodrel-dev/n8n-attio-node/issues/13)) ([23815e4](https://github.com/nodrel-dev/n8n-attio-node/commit/23815e48e38c1ac5ededfaee2a78ffd32c27acbe))
+* record T089 scan passing on published 0.2.4 ([#16](https://github.com/nodrel-dev/n8n-attio-node/issues/16)) ([4b15cdf](https://github.com/nodrel-dev/n8n-attio-node/commit/4b15cdf12a9a13241de1e7f48c533267ee812a49))
+
 ## [0.2.4](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.3...v0.2.4) (2026-08-16)
 
 
