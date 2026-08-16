@@ -78,4 +78,4 @@ All must pass. `npm pack` then inspect the tarball → `dependencies` empty (SC-
 - [ ] Release event triggers `publish.yml` → npm publish with visible provenance badge.
 - [ ] `ci.yml` fails on added runtime dep / scan fail / type fail / test fail.
 - [ ] Non-conventional PR title fails PR-title lint and cannot merge.
-- [ ] No `NPM_TOKEN` needed when OIDC trusted publishing is configured.
+- [X] No `NPM_TOKEN` needed when OIDC trusted publishing is configured. ✓ 2026-08-16 — 0.2.6 published token-free with provenance; `NPM_TOKEN` secret deleted. Register workflow **`release-please.yml`** (the entry point), not `publish.yml`.

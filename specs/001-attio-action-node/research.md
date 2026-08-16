@@ -109,9 +109,9 @@ Extracted the `security` block for all 21 endpoints from `attio-api-spec/openapi
 ## R9. Toolchain, test runner, and CI specifics
 
 - **Decision**: Scaffold via `npm create @n8n/node`; `@n8n/node-cli` **>= 0.23.0** devDependency (required for the provenance publish flow); Node **>= 22.22**; TypeScript strict with **incremental OFF**. Test runner: use whatever the n8n-node CLI scaffold ships (Jest in current scaffolds); pure-core tests are plain TS with no n8n imports, so the runner choice is non-binding. `release-please-action@v4` with `release-type: node`; two-workflow split (`release-please.yml` + scaffold `publish.yml`); `ci.yml` gates per brief §18.4 incl. the zero-dep script (`node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?1:0)"`) and PR-title commitlint. lefthook wires `commit-msg`→commitlint and `pre-commit`→lint locally.
-- **Rationale**: Matches the locked Nodrel toolchain (brief §16/§18); inherits the verification-registered `publish.yml` workflow name for npm Trusted Publisher.
+- **Rationale**: Matches the locked Nodrel toolchain (brief §16/§18). **Correction 2026-08-16 (as-built):** the original rationale — inheriting `publish.yml` as the Trusted-Publisher workflow name — is invalid. npm authorises the *entry-point* workflow of a run, not the reusable workflow that contains `npm publish`, so the registered workflow is **`release-please.yml`**; `publish.yml` is `workflow_call`-only.
 - **Open (non-blocking)**: Initial version / 1.0.0 cut — verification submission is the natural 1.0.0 trigger; start pre-1.0 via `.release-please-manifest.json`. Decided at release time, not a code gate.
-- **[VERIFY-LIVE]**: OIDC trusted publishing works with no stored `NPM_TOKEN` (brief §18.7).
+- **[VERIFY-LIVE]** ✓ **2026-08-16**: OIDC trusted publishing works with no stored `NPM_TOKEN` (brief §18.7). 0.2.6 published token-free, provenance signed to the Sigstore transparency log; the `NPM_TOKEN` secret has been deleted and the repo now has zero Actions secrets. Requires npm >= 11.5.1 and `id-token: write` on both parent and child workflow.
 
 ---
 

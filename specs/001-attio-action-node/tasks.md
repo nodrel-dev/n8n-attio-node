@@ -169,7 +169,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T064 [US5] **Verify-live**: Delete and both secondary reads round-trip ✓ create→ListAttrValues 200 / ListEntries 200 / Delete 200 / 404
 - [X] T065 Confirm all **Record operations** present and FR-003 Record group complete — **9 ops** (Create/Upsert/Get/Update/Get Many/Search/Delete/List Attribute Values/List Entries); contract title "(10)" was a typo, fixed to (9)
 
-**Checkpoint**: Record resource (10 ops) complete.
+**Checkpoint**: Record resource (9 ops) complete.
 
 ---
 
