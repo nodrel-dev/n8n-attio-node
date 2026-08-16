@@ -91,7 +91,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T030 [US2] Add **Record ID** param + Record **Get** routing `GET /v2/objects/{object}/records/{record_id}`
 - [X] T031 [US2] Add readable operation names + `action` text for Create and Get (already on selector options)
 - [~] T032 [US2] **Verify-live**: Create returns `data.id.record_id` (AS-A1) ✓ live POST → 200, `id.record_id` returned (also confirmed `{data:{values}}` envelope + URL accepted; 400 surfaced only for an invalid domain value). **PENDING**: 403-names-scope path needs a scope-restricted token (current token has all scopes); 403 hint logic is unit-tested in `formatAttioError`.
-- [ ] T033 [US2] **AI-Agent tool-path check**: Create Record executes via the agent tool path ← needs running n8n + agent
+- [X] T033 [US2] **AI-Agent tool-path check**: Create Record executes via the agent tool path ✓ 2026-08-16 (exec 1): agent called `attio_create_record`, node status success; created record `28051d66` **independently confirmed via GET /v2/objects/companies/records/{id} → 200, name round-tripped**, then deleted. Env: n8n 2.x in Docker, node mounted via N8N_CUSTOM_EXTENSIONS (loaded as CUSTOM.attio + auto-generated CUSTOM.attioTool), AI Agent v3.1 + Anthropic Claude Sonnet 4.6, params supplied by the model via $fromAI
 - [X] T034 [US2] **Verify-live**: Get round-trips with dual read scope (`record_permission:read` + `object_configuration:read`) ✓ live GET → 200, name round-tripped; DELETE → 200 (cleanup)
 
 **Checkpoint**: MVP — a user goes from token to created-and-read record without typing a slug.
@@ -110,7 +110,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T038 [US4] Add Record **Update** routing (url `=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}`, body via `buildValuesBody`; method delegated to the selected option)
 - [X] T039 [US4] Add readable name + `action` text for Update
 - [X] T040 [US4] **Verify-live**: Append (PATCH) retains existing + adds new; Overwrite (PUT) set equals sent (AS-C1/C2, SC-006) ✓ live on `domains` multiselect: PATCH `[two]`→`[two,one]`; PUT `[three]`→`[three]`; cleanup DELETE 200
-- [ ] T041 [US4] **AI-Agent tool-path check**: Update executes via the agent tool path ← needs running n8n + agent
+- [X] T041 [US4] **AI-Agent tool-path check**: Update executes via the agent tool path ✓ 2026-08-16 (exec 2): agent called `attio_update_record`; **independently confirmed** `description` = "updated by agent" on the target record via direct GET.
 
 **Checkpoint**: Append vs overwrite is explicit and correct — no silent data loss.
 
@@ -127,7 +127,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T044 [US3] Add readable name + `action` text for Upsert
 - [X] T045 [US3] **Verify-live**: two runs with the same matching value → one record, second updates (AS-B1, SC-005); referenced records must pre-exist ✓ live: `?matching_attribute=domains` twice → same `record_id`, name v1→v2; cleanup DELETE 200
 - [X] T046 [US3] **Verify-live**: omitting `matching_attribute` → validation error pre-request (AS-B2) — implemented via `makeMatchingAttributePreSend` (throws before request on empty); in-UI observation still pending
-- [ ] T047 [US3] **AI-Agent tool-path check**: Upsert executes via the agent tool path ← needs running n8n + agent
+- [X] T047 [US3] **AI-Agent tool-path check**: Upsert executes via the agent tool path ✓ 2026-08-16 (exec 2): agent called `attio_upsert_record` with matchingAttribute `domains`; **independently confirmed** record `f717d8ad` with name "Agent Upsert Verify" + domain `agent-upsert-verify.com` via direct GET.
 
 **Checkpoint**: Idempotent upsert works; Update and Upsert remain distinct (two-PUT model).
 
@@ -149,7 +149,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T055 [US5] **Verify-live**: filter returns only matching records (AS-D1) ✓ `name $contains "a"` → Apple/Attio/United Airlines only
 - [X] T056 [US5] **Verify-live**: Return All pages `offset` until exhausted; count matches workspace (AS-D2, SC-007) ✓ offset-in-body advances (page1 vs page2 ids distinct); n8n Return-All loop pending UI
 - [X] T057 [US5] **Verify-live**: Search `request_as.type: 'workspace'` works with a plain API token (research.md R3) ✓ 200 with data; **omitting `request_as` → 400** so always send it (buildSearchBody default)
-- [ ] T058 [US5] **AI-Agent tool-path check**: Get Many executes via the agent tool path (SC-009) ← needs running n8n + agent (deferred with T033/T041/T047)
+- [X] T058 [US5] **AI-Agent tool-path check**: Get Many executes via the agent tool path (SC-009) ✓ 2026-08-16 (exec 1): agent called `attio_get_many_records`, node status success, 5 companies returned and reported back by the agent.
 
 **Checkpoint**: Reading, filtering, full pagination, and cross-object search all work.
 
@@ -186,7 +186,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T070 [US6] Add readable names + `action` text for all Note operations
 - [X] T071 [US6] **Verify-live**: Note Create returns a note linked to the parent record (AS-E1) ✓ note_id linked to companies/472ea102, content_plaintext round-trips
 - [X] T072 [US6] **Verify-live**: Note Get / Get Many / Delete round-trip ✓ Get 200 / filtered GetMany returns the 1 note / Delete 200 / 404
-- [ ] T073 [US6] **AI-Agent tool-path check**: Note Create executes via the agent tool path ← needs running n8n + agent (deferred with T033/T041/T047/T058)
+- [X] T073 [US6] **AI-Agent tool-path check**: Note Create executes via the agent tool path ✓ 2026-08-16 (exec 2): agent called `attio_create_note`; **independently confirmed** note `6504bfa1` (title "Agent note") parented to companies/`28051d66` via GET /v2/notes/{id}.
 
 **Checkpoint**: Note resource (4 ops) complete.
 
@@ -207,7 +207,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T080 [US6] Add readable names + `action` text for all Task operations
 - [X] T081 [US6] **Verify-live**: Task Create linked to the record, assignee-by-email resolves (AS-E2) ✓ email→referenced_actor_id f5236069; linked to companies record
 - [X] T082 [US6] **Verify-live**: Task Update surface has no content field; content unchanged after update (FR-14, research.md R5) ✓ PATCH is_completed=true → content stays "ZZ US6 task ORIGINAL"
-- [X] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip ✓ Get 200 / paired linked_object+linked_record_id filter returns the task / Delete 200 / 404. **AI-Agent tool-path check deferred** (needs running n8n, with T033/T041/T047/T058/T073)
+- [X] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip ✓ Get 200 / paired linked_object+linked_record_id filter returns the task / Delete 200 / 404. **AI-Agent tool-path check** ✓ 2026-08-16 (exec 2): agent called `attio_create_task`; **independently confirmed** task `99a8b836` (content "Agent task verify") via GET /v2/tasks/{id}.
 
 **Checkpoint**: Task resource (5 ops) complete — all 18 operations exist.
 
@@ -219,8 +219,8 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 
 **Independent Test**: From the agent tool path, run Create Record and Get Many and confirm both execute.
 
-- [ ] T084 [US7] **Verify-live**: AI-Agent tool path runs **Record Create AND Get Many** end-to-end (AS-F1, SC-009)
-- [ ] T085 [US7] Confirm all 18 operations expose `action` text and are selectable/usable as a tool
+- [X] T084 [US7] **Verify-live**: AI-Agent tool path runs **Record Create AND Get Many** end-to-end (AS-F1, SC-009) ✓ 2026-08-16 (exec 1): a single agent run performed BOTH in order — Create then Get Many — both nodes status success, execution finished success. Create verified against the live API; all test data deleted afterwards.
+- [X] T085 [US7] Confirm all 18 operations expose `action` text and are selectable/usable as a tool ✓ 2026-08-16, checked against the **loaded** n8n registry (`/types/nodes.json`), not the source: record 9 + note 4 + task 5 = 18, **all 18 carry non-empty `action` text**. (The registry reports 21 because n8n injects its own `__CUSTOM_API_CALL__` option per resource; those 3 are n8n's, not ours.) `usableAsTool: true` and n8n generated the **Attio Tool** variant, which the agent then actually invoked in T033/T058/T084.
 
 **Checkpoint**: AI-agent compatibility validated.
 
@@ -240,7 +240,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
       now reports 0 errors / 0 warnings against this repo. Re-run the published-package scan once
       the next version ships to close this out.
 - [X] T090 `npm pack` and inspect the tarball: `dependencies` empty; zero runtime deps confirmed (SC-008, NFR-1) — tarball ships only LICENSE/README/package.json/dist; no src, tests, specs, .env, or attio-api-spec; `dependencies: {}`
-- [~] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case) — documented in `descriptions/shared.ts` (n8n routing runs each input item independently); **live verification deferred** (needs running n8n)
+- [X] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case) ✓ 2026-08-16 (exec 3) **live**: 3-item batch (valid, bogus UUID, valid) into Record Get with `onError: continueRegularOutput` → **3 output items, workflow status success**; items 0 and 2 returned their record_ids, item 1 carried the formatted message `Attio API error 404 (invalid_request_error/not_found): Record with ID "…" not found.` Confirms the batch does not abort AND that errors route through `formatAttioError`.
 - [X] T092 **Pipeline acceptance**: a `feat:` merge opens/updates a release-please PR; merging it creates the tag + GitHub Release; the Release event triggers `publish.yml` → npm publish with a visible provenance badge (brief §18.7)
       Verified end-to-end: PR #9 (`fix:`) → release-please PR #10 → tag/Release `v0.2.3` →
       npm `@nodrel-dev/n8n-nodes-attio@0.2.3` published with SLSA provenance
