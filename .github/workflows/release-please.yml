@@ -1,8 +1,26 @@
 name: release-please
 
+# The SINGLE entry point for every npm publish.
+#
+# npm Trusted Publishing authorises the entry-point workflow of a run, not the workflow
+# containing `npm publish`, and a package registers exactly one workflow filename. So
+# both the automatic release path and manual recovery have to start here — that is why
+# the recovery dispatch lives in this file rather than in publish.yml.
+#
+# npmjs.com trusted publisher config for @nodrel-dev/n8n-nodes-attio:
+#   repository: nodrel-dev/n8n-attio-node
+#   workflow:   release-please.yml
+#   environment: (none)
+
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Recovery only — republish an existing tag (e.g. v0.2.5). Leave empty for the normal release flow.'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -10,6 +28,9 @@ permissions:
 
 jobs:
   release-please:
+    # Skipped on manual dispatch: recovery republishes an existing tag and must not
+    # touch release state.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
@@ -21,23 +42,25 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  # release-please creates the GitHub Release with GITHUB_TOKEN, and GitHub does not
-  # fire workflow-triggering events for actions taken by GITHUB_TOKEN (it prevents
-  # workflows recursively triggering themselves). So publish.yml's `on: release` trigger
-  # never fires for a release-please release — v0.2.4 was tagged and released but never
-  # reached npm because of exactly this. Call publish directly off release_created
-  # instead of depending on that event.
-  #
-  # Chosen over the alternative fix (giving release-please a PAT so the Release is
-  # authored by a real user) because a PAT is one more credential that silently expires
-  # — the same failure mode that took the NPM_TOKEN down.
+  # Called directly rather than via `on: release` in publish.yml: release-please creates
+  # the Release with GITHUB_TOKEN, and GitHub does not fire workflow-triggering events for
+  # GITHUB_TOKEN actions, so that trigger never fires (v0.2.4 was released but never
+  # reached npm because of it). A PAT would restore the event but adds another credential
+  # that silently expires — the exact failure that took NPM_TOKEN down.
   publish:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    needs: [release-please]
+    # `needs` alone would skip this when release-please is skipped on dispatch, so gate
+    # explicitly instead of relying on the default success() behaviour.
+    if: >-
+      !cancelled() &&
+      (
+        (needs.release-please.result == 'success' && needs.release-please.outputs.release_created == 'true')
+        || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+      )
     uses: ./.github/workflows/publish.yml
     with:
-      tag: ${{ needs.release-please.outputs.tag_name }}
+      tag: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
     permissions:
       contents: read
+      # Required on the parent as well as the child for OIDC to reach npm.
       id-token: write
-    secrets: inherit
