@@ -12,7 +12,7 @@ Conventions (brief §5):
 Files:
 - `credential.md` — `attioApi` + `/v2/self` test
 - `load-options.md` — `getObjects` (`GET /v2/objects`)
-- `record-operations.md` — 10 Record ops
+- `record-operations.md` — 9 Record ops
 - `note-operations.md` — 4 Note ops
 - `task-operations.md` — 5 Task ops
 

@@ -126,16 +126,39 @@ Releases are fully automated. **Never bump the version by hand and never publish
 - **`release-please`** (`.github/workflows/release-please.yml`) owns version bumps, the changelog, tags,
   and GitHub Releases. A `feat:`/`fix:` merge opens or updates a release PR; merging that PR cuts the
   release.
-- **`publish.yml`** runs only on `release: published` and publishes to npm with `--provenance` via OIDC
-  Trusted Publishing — there is **no stored `NPM_TOKEN`**.
+- **`publish.yml`** is `workflow_call`-only. `release-please.yml` invokes it directly once it has cut a
+  release, and it publishes to npm with `--provenance` via OIDC Trusted Publishing — there is **no stored
+  `NPM_TOKEN`**, and the repo carries no Actions secrets at all.
+
+  It is deliberately **not** triggered by `release: published`. release-please creates the Release using
+  `GITHUB_TOKEN`, and GitHub does not fire workflow-triggering events for `GITHUB_TOKEN` actions, so that
+  trigger never fires. `v0.2.4` was tagged and released but never reached npm before this was corrected.
+
+- **Recovery**: to republish a tag whose publish never ran, dispatch **`release-please.yml`** (not
+  `publish.yml`) with the `tag` input, e.g. `v0.2.6`. It skips automatically if that version is already
+  on npm, so re-running is safe.
 
 ### npm Trusted Publisher (OIDC) setup
 
-1. On npmjs.com, open the package's **Settings → Trusted Publishers** (create the package/scope first if
-   needed).
-2. Add a GitHub Actions publisher: repository `nodrel/n8n-nodes-attio`, workflow `publish.yml`.
-3. No npm token is stored in GitHub. The `publish.yml` job requests an OIDC token via
-   `permissions: id-token: write` and npm verifies it, attaching a provenance badge to the release.
+1. On npmjs.com, open the package's **Settings → Trusted Publishers**.
+2. Add a GitHub Actions publisher:
+
+   | Field | Value |
+   |-------|-------|
+   | Organization or user | `nodrel-dev` |
+   | Repository | `n8n-attio-node` |
+   | Workflow filename | `release-please.yml` |
+   | Environment | *(leave empty)* |
+
+   > ⚠️ The workflow is **`release-please.yml`**, not `publish.yml` — even though `publish.yml` is the
+   > file that actually runs `npm publish`. npm authorises the *entry-point* workflow of a run, not the
+   > reusable workflow it calls. Registering `publish.yml` fails as a misleading 404 on publish.
+   > Renaming `release-please.yml` breaks publishing until this config is updated to match.
+
+3. No npm token is stored in GitHub. Both the calling job and `publish.yml` declare
+   `permissions: id-token: write` (OIDC needs it on parent *and* child); npm verifies the token and
+   attaches a provenance badge. Trusted publishing requires **npm >= 11.5.1**, so `publish.yml` upgrades
+   npm before publishing — Node 22.x ships npm 10.x, which has no trusted-publishing support.
 
 ### Branch protection (`main`)
 

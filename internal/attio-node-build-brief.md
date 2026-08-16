@@ -85,7 +85,9 @@ The Objects resource is **not** a user-facing resource. `GET /v2/objects` exists
 | Task | Update | `PATCH /v2/tasks/{task_id}` | Content is **not** updatable (see 5.4) |
 | Task | Delete | `DELETE /v2/tasks/{task_id}` | |
 
-That is 10 Record operations, 4 Note operations, 5 Task operations. The matrix is the authoritative operation list. [LOCKED]
+That is **9** Record operations, 4 Note operations, 5 Task operations — **18 total**. The matrix is the authoritative operation list. [LOCKED]
+
+> **Corrected 2026-08-16.** This line previously read "10 Record operations" (and 19 total). The table above has always listed 9 Record ops; the count was a typo that propagated into spec.md, plan.md, tasks.md and the contracts README. Verified against the built node loaded in n8n: Record 9 + Note 4 + Task 5 = 18, all carrying `action` text.
 
 ---
 
@@ -513,7 +515,7 @@ For Get Many operations, unwrap `data[]` into one n8n item per element. Implemen
 
 - FR-2: The object selector is populated dynamically from the user's workspace; no hand-typing slugs for the common path. [LOCKED]
 
-- FR-3: All 19 operations in the 2.1 matrix are available, grouped by Resource then Operation, with readable names. [LOCKED]
+- FR-3: All 18 operations in the 2.1 matrix are available, grouped by Resource then Operation, with readable names. [LOCKED] (was written as 19 — see the correction under 2.1)
 
 - FR-4: Record Update exposes Append vs Overwrite and routes to PATCH vs PUT accordingly. [LOCKED]
 
@@ -659,7 +661,7 @@ Matches the established Nodrel process (FedEx, UPS nodes).
   - `n8n.n8nNodesApiVersion: 1`, with `credentials: ["dist/credentials/AttioApi.credentials.js"]` and `nodes: ["dist/nodes/Attio/Attio.node.js"]`.
   - `dependencies`: empty. This is non-negotiable.
 
-- **Publishing (from May 1 2026, mandatory for verification):** publish via the GitHub Actions `publish.yml` with a provenance statement. n8n will not accept verified nodes published from a local machine. Configure npm Trusted Publisher (npmjs.com > package settings > Publish access > Trusted Publishers > Add a publisher > GitHub Actions) with the Nodrel repo owner, repo name, and workflow filename `publish.yml`. No long-lived token needed; a granular `NPM_TOKEN` secret is the fallback. (https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/)
+- **Publishing (from May 1 2026, mandatory for verification):** publish via the GitHub Actions `publish.yml` with a provenance statement. n8n will not accept verified nodes published from a local machine. Configure npm Trusted Publisher (npmjs.com > package settings > Publish access > Trusted Publishers > Add a publisher > GitHub Actions) with the Nodrel repo owner, repo name, and workflow filename. No long-lived token needed. **As-built correction 2026-08-16:** the registered workflow filename is **`release-please.yml`** (the entry point), NOT `publish.yml` — npm authorises the entry-point workflow of a run. There is no `NPM_TOKEN` fallback; the secret was deleted after an expiry silently blocked the v0.2.4 publish. See §18.3. (https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/)
 
 - **Docs:** English-only README with operations table, credential setup (token generation path and per-operation scopes from 4.3), an example workflow, and the Nodrel support boundary. English-only applies to all parameter names, descriptions, help text, and error messages too.
 
@@ -731,6 +733,12 @@ permissions:
 
 If you prefer a single workflow, release-please's `release_created` output can gate the publish step in the same job (`if: ${{ steps.release.outputs.release_created }}`). The two-workflow split is recommended because it preserves the scaffold's `publish.yml` as the verification-registered workflow name. [LOCKED on split, OPEN on single-vs-two at plan time]
 
+> **SUPERSEDED 2026-08-16 — as-built.** The stated rationale for the split turned out to be backwards. Keeping `publish.yml` as "the verification-registered workflow name" is exactly what does *not* work: npm registers the entry-point workflow, so the registered name is `release-please.yml`.
+>
+> As built, the split is retained but wired the other way round: `release-please.yml` is the single entry point and calls `publish.yml` via `workflow_call`, gated on `release_created` — effectively the `release_created` approach above, with the publish steps kept in their own file for readability. `publish.yml` has no event triggers of its own.
+
+
+
 ### 18.3 npm publish with provenance (OIDC, no stored token)
 
 The publish step uses npm provenance and the npm **Trusted Publisher** (OIDC) so no long-lived `NPM_TOKEN` is stored:
@@ -743,7 +751,16 @@ The publish step uses npm provenance and the npm **Trusted Publisher** (OIDC) so
 
 `--provenance` makes npm generate a signed SLSA provenance attestation that cryptographically ties the published tarball to this repository, commit, and workflow run, using GitHub's OIDC identity. This is exactly what n8n requires from May 1 2026 (section 16) and is the core of the supply-chain governance posture.
 
-Setup (matches the n8n submit-node doc): on npmjs.com, package settings > Publish access > Trusted Publishers > Add a publisher > GitHub Actions, with the Nodrel repo owner, repo name, and workflow filename `publish.yml`. A granular-access `NPM_TOKEN` secret is the fallback only if OIDC trusted publishing is unavailable; in that case still pass `--provenance`. Requires `@n8n/node-cli` >= 0.23.0 (section 16). (https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/, https://docs.npmjs.com/generating-provenance-statements)
+Setup (matches the n8n submit-node doc): on npmjs.com, package settings > Publish access > Trusted Publishers > Add a publisher > GitHub Actions, with the Nodrel repo owner, repo name, and the workflow filename.
+
+> **SUPERSEDED 2026-08-16 — as-built.** This paragraph originally said to register workflow filename `publish.yml`, and to keep a granular `NPM_TOKEN` as fallback. Both are wrong as built:
+> - The registered workflow is **`release-please.yml`**, because npm authorises the *entry-point* workflow of a run, not the reusable workflow containing `npm publish`. `publish.yml` is now `workflow_call`-only and registering it fails as a misleading 404.
+> - There is **no `NPM_TOKEN` fallback**. The secret was deleted; the repo has no Actions secrets. A stored token is what silently broke the v0.2.4 publish when it expired, which is the reason for going token-free.
+> - Trusted publishing needs **npm >= 11.5.1**; Node 22.x bundles npm 10.x, so `publish.yml` upgrades npm first. `id-token: write` is required on both parent and child workflow.
+>
+> Actual npmjs.com config: repo `nodrel-dev/n8n-attio-node`, workflow `release-please.yml`, no environment. Verified live: 0.2.6 published token-free with provenance signed to the Sigstore transparency log.
+
+Requires `@n8n/node-cli` >= 0.23.0 (section 16). (https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/, https://docs.npmjs.com/generating-provenance-statements)
 
 ### 18.4 CI checks (pull-request gates)
 
@@ -794,7 +811,7 @@ release-please only works if history is Conventional Commits. Enforce it at two 
 
 - [ ] A non-conventional PR title fails the PR-title lint and cannot merge.
 
-- [ ] No `NPM_TOKEN` is required when OIDC trusted publishing is configured. [VERIFY-LIVE]
+- [X] No `NPM_TOKEN` is required when OIDC trusted publishing is configured. [VERIFY-LIVE] ✓ 2026-08-16 — 0.2.6 published token-free with provenance signed to the Sigstore transparency log; `NPM_TOKEN` secret deleted, repo now has zero Actions secrets.
 
 ---
 
@@ -823,7 +840,7 @@ Build n8n-nodes-attio, a verified-track n8n community action node that talks dir
 API so a user works with their own workspace via a single API token. Treat attio-node-build-brief.md in
 this repo as the source of requirements and write the spec from it: the three resources and operation
 matrix (section 2), the user stories and acceptance scenarios (section 14), and the functional
-requirements (section 11). Resources are Record (10 ops), Note (4 ops), Task (5 ops); Objects is a dynamic
+requirements (section 11). Resources are Record (9 ops), Note (4 ops), Task (5 ops); Objects is a dynamic
 dropdown source, not a resource. Write in terms of user value and acceptance scenarios; defer API field
 names and routing mechanics to the plan, which will draw on the brief's verified contracts. The decisions
 in section 12 are locked; do not reopen them.

@@ -190,7 +190,7 @@ FR-8, NFR-8).
 
 ### XII. Spec Fidelity and Locked-Decision Discipline
 
-The section 2.1 operation matrix (10 Record, 4 Note, 5 Task) is the authoritative operation
+The section 2.1 operation matrix (9 Record, 4 Note, 5 Task — 18 total) is the authoritative operation
 list. Successful responses are unwrapped from the top-level `data` key into n8n items (one
 per array element for lists, one for single-object operations). Decisions marked [LOCKED] in
 the brief MUST NOT be reopened during clarification or implementation. Every [VERIFY-LIVE]
