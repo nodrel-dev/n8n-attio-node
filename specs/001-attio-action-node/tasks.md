@@ -233,12 +233,15 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T086 [P] Write English-only `README.md`: operations table (Record 9 / Note 4 / Task 5), credential setup (token path + per-operation scopes from research.md R2), example workflow (Create company → Create note), Nodrel support boundary
 - [X] T087 [P] Ensure the credential field description lists the scope pairs per operation group (Principle IV) — verified accurate vs R2 (read/write split, List Entries +list_entry:read, Note/Task broader scopes, Delete-only-write)
 - [~] T088 **Verify-live**: a 429 surfaces a rate-limit message and `Retry-After` is parsed as a **date**; README directs users to n8n Retry-On-Fail (research.md R4, NFR-10) — README done + `formatAttioError` 429/date logic unit-tested; **live 429 trigger deferred** (hard to force without hammering the API)
-- [ ] T089 Run `npx @n8n/scan-community-package n8n-nodes-attio` — passes (SC-008)
-      Ran against published `@nodrel-dev/n8n-nodes-attio@0.2.3`: **failed** on 2 errors
+- [X] T089 Run `npx @n8n/scan-community-package n8n-nodes-attio` — passes (SC-008)
+      First run (published `@nodrel-dev/n8n-nodes-attio@0.2.3`) **failed**: 2 errors
       (`require-node-api-error` in `buildQueryBody.ts` / `buildValuesBody.ts`) + 2 warnings
-      (`icon-prefer-themed-variants`). All four fixed in source; the scanner's own ESLint config
-      now reports 0 errors / 0 warnings against this repo. Re-run the published-package scan once
-      the next version ships to close this out.
+      (`icon-prefer-themed-variants`). Fixed in PR #11 (`core/tryParseJson.ts` moves the throw
+      out of the catch; themed `{ light, dark }` icons added).
+      **✓ 2026-08-16 against published `@nodrel-dev/n8n-nodes-attio@0.2.4`:**
+      "Provenance check passed", source fetched at `1d2a68d`, "**has passed all security checks**"
+      — 0 errors, 0 warnings. Getting 0.2.4 onto npm also required fixing the release pipeline
+      (see T092) and rotating an expired `NPM_TOKEN`.
 - [X] T090 `npm pack` and inspect the tarball: `dependencies` empty; zero runtime deps confirmed (SC-008, NFR-1) — tarball ships only LICENSE/README/package.json/dist; no src, tests, specs, .env, or attio-api-spec; `dependencies: {}`
 - [X] T091 [P] Verify `continueOnFail`: one bad item does not abort a batch (FR-13 edge case) ✓ 2026-08-16 (exec 3) **live**: 3-item batch (valid, bogus UUID, valid) into Record Get with `onError: continueRegularOutput` → **3 output items, workflow status success**; items 0 and 2 returned their record_ids, item 1 carried the formatted message `Attio API error 404 (invalid_request_error/not_found): Record with ID "…" not found.` Confirms the batch does not abort AND that errors route through `formatAttioError`.
 - [X] T092 **Pipeline acceptance**: a `feat:` merge opens/updates a release-please PR; merging it creates the tag + GitHub Release; the Release event triggers `publish.yml` → npm publish with a visible provenance badge (brief §18.7)
@@ -246,6 +249,14 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
       npm `@nodrel-dev/n8n-nodes-attio@0.2.3` published with SLSA provenance
       (`predicateType: https://slsa.dev/provenance/v1`; the community scanner's own
       "Provenance check passed" confirms it).
+      **Latent flaw found and fixed 2026-08-16 (PR #15):** the pipeline only worked by luck.
+      release-please creates the Release with `GITHUB_TOKEN`, and GitHub suppresses
+      workflow-triggering events for `GITHUB_TOKEN` actions, so `publish.yml`'s `on: release`
+      never fires — `v0.2.4` was tagged and released but never reached npm. release-please now
+      calls `publish.yml` directly via `workflow_call` gated on `release_created`; `publish.yml`
+      gained `workflow_dispatch` recovery, an "already on npm" skip guard, and an explicit tag
+      checkout. Both new paths exercised live: dispatch published 0.2.4 with provenance, and a
+      re-dispatch correctly skipped instead of failing.
 - [X] T093 [P] Verify a non-conventional PR title fails the PR-title lint and cannot merge (brief §18.5) — validated locally via `commitlint.config.js`: "feat: …" passes (exit 0), "added some stuff" fails (type/subject empty)
 - [ ] T094 Run the full `quickstart.md` validation pass — every brief §15 verify-live gate checked
 - [X] T095 [P] English-only audit (FR-016): reviewed all user-facing strings (operation/field names, descriptions, help text, `formatAttioError` messages) — all English; only non-ASCII is typographic punctuation (em-dash/→/§/≥); normalized one curly apostrophe to straight
