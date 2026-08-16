@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.3...v0.2.4) (2026-08-16)
+
+
+### Bug Fixes
+
+* clear @n8n/scan-community-package violations ([#11](https://github.com/nodrel-dev/n8n-attio-node/issues/11)) ([30be897](https://github.com/nodrel-dev/n8n-attio-node/commit/30be89797e673aa2307767b3849d2afd6269c326))
+
 ## [0.2.3](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.2...v0.2.3) (2026-06-26)
 
 
