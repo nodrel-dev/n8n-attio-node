@@ -23,7 +23,7 @@ export class AttioApi implements ICredentialType {
 
 	displayName = 'Attio API';
 
-	icon: Icon = 'file:attio.svg';
+	icon: Icon = { light: 'file:attio.svg', dark: 'file:attio.dark.svg' };
 
 	documentationUrl = 'https://docs.attio.com/rest-api/how-to/get-started';
 
