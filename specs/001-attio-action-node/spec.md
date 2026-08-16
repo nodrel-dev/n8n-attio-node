@@ -194,7 +194,7 @@ both execute successfully.
 - **FR-002**: The object selector MUST be populated dynamically from the user's own workspace
   (standard and custom objects), shown by readable name, so the common path never requires
   hand-typing an object slug.
-- **FR-003**: All 19 operations of the operation matrix MUST be available, grouped by Resource
+- **FR-003**: All 18 operations of the operation matrix MUST be available, grouped by Resource
   then Operation with human-readable names: Record (Create, Upsert, Get, Update, Get Many,
   Search, Delete, List Attribute Values, List Entries — 10 operations), Note (Create, Get, Get
   Many, Delete — 4 operations), Task (Create, Get, Get Many, Update, Delete — 5 operations).
@@ -251,7 +251,7 @@ both execute successfully.
   ever typing an object slug by hand.
 - **SC-002**: 100% of invalid tokens are rejected at credential save time rather than at first
   operation run.
-- **SC-003**: All 19 operations across the three resources are available and individually
+- **SC-003**: All 18 operations across the three resources are available and individually
   succeed against a real workspace.
 - **SC-004**: Every permission failure surfaces a message that identifies the missing scope, so
   a user can fix it without external documentation.

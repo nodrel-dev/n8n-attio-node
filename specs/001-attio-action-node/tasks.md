@@ -209,7 +209,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 - [X] T082 [US6] **Verify-live**: Task Update surface has no content field; content unchanged after update (FR-14, research.md R5) ✓ PATCH is_completed=true → content stays "ZZ US6 task ORIGINAL"
 - [X] T083 [US6] **Verify-live**: Task Get / Get Many / Delete round-trip ✓ Get 200 / paired linked_object+linked_record_id filter returns the task / Delete 200 / 404. **AI-Agent tool-path check deferred** (needs running n8n, with T033/T041/T047/T058/T073)
 
-**Checkpoint**: Task resource (5 ops) complete — all 19 operations exist.
+**Checkpoint**: Task resource (5 ops) complete — all 18 operations exist.
 
 ---
 
@@ -220,7 +220,7 @@ Single-package declarative n8n node (plan.md): `credentials/`, `nodes/Attio/` (w
 **Independent Test**: From the agent tool path, run Create Record and Get Many and confirm both execute.
 
 - [ ] T084 [US7] **Verify-live**: AI-Agent tool path runs **Record Create AND Get Many** end-to-end (AS-F1, SC-009)
-- [ ] T085 [US7] Confirm all 19 operations expose `action` text and are selectable/usable as a tool
+- [ ] T085 [US7] Confirm all 18 operations expose `action` text and are selectable/usable as a tool
 
 **Checkpoint**: AI-agent compatibility validated.
 
