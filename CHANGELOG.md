@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.5...v0.2.6) (2026-08-16)
+
+
+### CI
+
+* bump stale and labeler to runnable versions ([#18](https://github.com/nodrel-dev/n8n-attio-node/issues/18)) ([6fdb932](https://github.com/nodrel-dev/n8n-attio-node/commit/6fdb932928c4ae2ed6b161dc3941f387390073fe))
+
 ## [0.2.5](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.4...v0.2.5) (2026-08-16)
 
 
