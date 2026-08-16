@@ -1,0 +1,41 @@
+# Config for actions/labeler (see .github/workflows/label.yml).
+#
+# v5+ format: each label maps to a list of match rules, not a bare glob list.
+# The pre-v5 shape (`label: ['glob']`) is silently invalid here.
+
+node:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'nodes/**'
+
+credentials:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'credentials/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'test/**'
+          - 'jest.config.js'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+          - 'lefthook.yml'
+          - 'commitlint.config.js'
+          - 'release-please-config.json'
+          - '.release-please-manifest.json'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'package-lock.json'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'specs/**'
