@@ -1,10 +1,41 @@
 name: publish
 
-# Publishes to npm with build provenance. Authenticates with the NPM_TOKEN
-# automation token (repo secret); provenance attestation still uses OIDC (id-token).
-# Triggered ONLY by a GitHub Release published by release-please.
-# Never publish from a local machine; never bump the version by hand.
+# Publishes to npm with build provenance.
+#
+# Three entry points, in the order they matter:
+#
+#   workflow_call     Primary. release-please calls this directly once it has created
+#                     a release. This deliberately does NOT depend on the `release`
+#                     event: release-please creates the Release using GITHUB_TOKEN, and
+#                     GitHub suppresses workflow-triggering events for anything done by
+#                     GITHUB_TOKEN, so `on: release` never fires for it. See
+#                     release-please.yml.
+#
+#   workflow_dispatch Manual recovery — republish a tag whose publish never ran or
+#                     failed (e.g. an expired NPM_TOKEN). Safe to re-run: the job skips
+#                     if that version is already on npm.
+#
+#   release           Still fires when a human publishes a Release by hand.
+#
+# Authenticates with the NPM_TOKEN secret; provenance attestation uses OIDC
+# (id-token: write). Never publish from a local machine; never bump the version by hand.
+
 on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Git tag to publish (e.g. v0.2.4)
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to publish (e.g. v0.2.4)
+        required: true
+        type: string
   release:
     types: [published]
 
@@ -17,6 +48,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Publish exactly the released commit, whichever entry point triggered us.
+          ref: ${{ inputs.tag || github.event.release.tag_name || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -30,7 +64,23 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Makes re-dispatch safe: npm hard-fails on republishing an existing version,
+      # which would otherwise turn a harmless retry into a red run.
+      - name: Check whether this version is already published
+        id: check
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Resolved $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$NAME@$VERSION is already on npm — skipping publish."
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish with provenance
+        if: steps.check.outputs.already == 'false'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

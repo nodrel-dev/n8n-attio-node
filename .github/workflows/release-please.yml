@@ -11,8 +11,33 @@ permissions:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # release-please creates the GitHub Release with GITHUB_TOKEN, and GitHub does not
+  # fire workflow-triggering events for actions taken by GITHUB_TOKEN (it prevents
+  # workflows recursively triggering themselves). So publish.yml's `on: release` trigger
+  # never fires for a release-please release — v0.2.4 was tagged and released but never
+  # reached npm because of exactly this. Call publish directly off release_created
+  # instead of depending on that event.
+  #
+  # Chosen over the alternative fix (giving release-please a PAT so the Release is
+  # authored by a real user) because a PAT is one more credential that silently expires
+  # — the same failure mode that took the NPM_TOKEN down.
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: ./.github/workflows/publish.yml
+    with:
+      tag: ${{ needs.release-please.outputs.tag_name }}
+    permissions:
+      contents: read
+      id-token: write
+    secrets: inherit
