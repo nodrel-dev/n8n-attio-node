@@ -1,43 +1,28 @@
 name: publish
 
-# Publishes to npm with build provenance.
+# Publishes to npm using **Trusted Publishing (OIDC)** — no NPM_TOKEN, nothing to expire.
+# Provenance is attested from the same OIDC identity.
 #
-# Three entry points, in the order they matter:
+# This workflow is `workflow_call`-only ON PURPOSE. npm authorises the *entry-point*
+# workflow of a run, not the workflow that actually contains `npm publish`:
 #
-#   workflow_call     Primary. release-please calls this directly once it has created
-#                     a release. This deliberately does NOT depend on the `release`
-#                     event: release-please creates the Release using GITHUB_TOKEN, and
-#                     GitHub suppresses workflow-triggering events for anything done by
-#                     GITHUB_TOKEN, so `on: release` never fires for it. See
-#                     release-please.yml.
+#   "validation checks the calling workflow's name instead of the workflow that
+#    actually contains the publish command"  — https://docs.npmjs.com/trusted-publishers/
 #
-#   workflow_dispatch Manual recovery — republish a tag whose publish never ran or
-#                     failed (e.g. an expired NPM_TOKEN). Safe to re-run: the job skips
-#                     if that version is already on npm.
+# So every publish must enter through release-please.yml, which is the single workflow
+# registered as the trusted publisher on npmjs.com. Adding `on: release` or
+# `on: workflow_dispatch` back here would create a second entry point that npm would
+# refuse to authorise (it surfaces as a confusing 404 on publish).
 #
-#   release           Still fires when a human publishes a Release by hand.
-#
-# Authenticates with the NPM_TOKEN secret; provenance attestation uses OIDC
-# (id-token: write). Never publish from a local machine; never bump the version by hand.
+# `id-token: write` is required on BOTH parent and child — see the caller's job perms.
 
 on:
   workflow_call:
     inputs:
       tag:
-        description: Git tag to publish (e.g. v0.2.4)
+        description: Git tag to publish (e.g. v0.2.5)
         required: true
         type: string
-    secrets:
-      NPM_TOKEN:
-        required: true
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: Git tag to publish (e.g. v0.2.4)
-        required: true
-        type: string
-  release:
-    types: [published]
 
 permissions:
   contents: read
@@ -49,8 +34,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Publish exactly the released commit, whichever entry point triggered us.
-          ref: ${{ inputs.tag || github.event.release.tag_name || github.ref }}
+          # Publish exactly the released commit, not whatever ref triggered the run.
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-node@v4
         with:
@@ -58,14 +43,20 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: npm
 
+      # Trusted publishing needs npm >= 11.5.1; the npm bundled with Node 22.x is 10.x.
+      - name: Upgrade npm for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
       - name: Install
         run: npm ci
 
       - name: Build
         run: npm run build
 
-      # Makes re-dispatch safe: npm hard-fails on republishing an existing version,
-      # which would otherwise turn a harmless retry into a red run.
+      # Makes re-publishing a tag safe: npm hard-fails on an existing version, which
+      # would otherwise turn a harmless recovery run red.
       - name: Check whether this version is already published
         id: check
         run: |
@@ -79,8 +70,7 @@ jobs:
             echo "already=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # No NODE_AUTH_TOKEN: auth is the OIDC token minted from id-token: write.
       - name: Publish with provenance
         if: steps.check.outputs.already == 'false'
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
