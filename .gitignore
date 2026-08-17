@@ -146,3 +146,8 @@ vite.config.ts.timestamp-*
 /test-results/
 /playwright-report/
 /test/e2e/.auth/
+
+# Private working docs (demo scripts, review notes). These are teleprompter docs read
+# alongside live workspace credentials, so they must never reach the public repo.
+# `internal/attio-node-build-brief.md` stays tracked deliberately — it holds no secrets.
+/internal/docs/
