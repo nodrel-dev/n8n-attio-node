@@ -48,7 +48,7 @@ Gates derived from `.specify/memory/constitution.md` (v1.0.0). All 14 principles
 | VI | Task Content Write-Once | Task Update surface omits `content`; `format` hardcoded `plaintext`. **PASS** |
 | VII | English-Only + Provenance Publishing | All text English; publish only via `publish.yml` provenance workflow. **PASS** |
 | VIII | Testable Pure Core | All §9 functions implemented framework-free with tests-first. **PASS** |
-| IX | Faithful Error Surfacing | `formatAttioError` surfaces `status_code/type/code/message`; 403→scope hint; 429→rate-limit + `Retry-After` parsed as date; respects `continueOnFail`. **PASS** |
+| IX | Faithful Error Surfacing | `formatAttioError` surfaces `status_code/type/code/message`; 403→scope hint; 429→rate-limit + `Retry-After` as delta-seconds or HTTP date; respects `continueOnFail`. **PASS** |
 | X | No Env/Filesystem Access | No `process.env`, no `fs`; all I/O via params/credential. **PASS** |
 | XI | Readable, AI-Tool-Ready Ops + Dynamic Dropdown | Resource→Operation, readable names + `action`; `getObjects` loadOptions on `GET /v2/objects`. **PASS** |
 | XII | Spec Fidelity + Locked-Decision Discipline | 19-op matrix honored; `data` unwrap; locked decisions untouched; every [VERIFY-LIVE] is a gate. **PASS** |

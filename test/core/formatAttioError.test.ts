@@ -53,18 +53,60 @@ describe('formatAttioError', () => {
 		expect(out.toLowerCase()).toContain('not found');
 	});
 
-	it('reports 429 as rate limiting and parses Retry-After as a DATE (never seconds)', () => {
-		const retryAfter = 'Wed, 21 Oct 2026 07:28:00 GMT';
-		const out = formatAttioError(
+	/**
+	 * `Retry-After` is `HTTP-date | delta-seconds` (RFC 9110 §10.2.3) and **Attio sends both**,
+	 * depending on which limiter trips — verified live 2026-08-17: `/v2/self` returned
+	 * `Mon, 17 Aug 2026 14:30:00 GMT`, while the records-query concurrency limiter returned `9`.
+	 *
+	 * The delta-seconds case is the one that bit: `new Date('9')` is a *valid* Date
+	 * (2001-09-01), so a seconds value silently rendered as a timestamp 25 years in the past.
+	 * Seconds must therefore be detected before attempting a date parse.
+	 */
+	const rateLimited = (retryAfter?: string) =>
+		formatAttioError(
 			429,
 			envelope({ status_code: 429, type: 'rate_limit_error', code: 'rate_limit_exceeded', message: 'Slow down.' }),
-			{ retryAfter },
+			retryAfter === undefined ? undefined : { retryAfter },
 		);
+
+	it('reports 429 as rate limiting and parses an HTTP-date Retry-After as a timestamp', () => {
+		const retryAfter = 'Wed, 21 Oct 2026 07:28:00 GMT';
+		const out = rateLimited(retryAfter);
 		expect(out).toContain('429');
 		expect(out.toLowerCase()).toContain('rate');
-		// Parsed as an HTTP date -> ISO timestamp, not treated as a seconds offset.
 		expect(out).toContain(new Date(retryAfter).toISOString());
 		expect(out).toContain(retryAfter);
+	});
+
+	it('treats a bare-integer Retry-After as delta-seconds, not a date', () => {
+		const out = rateLimited('9');
+		expect(out).toContain('429');
+		expect(out).toContain('9 seconds');
+		// The 2001 regression: `new Date('9')` parses, so this must never render as a date.
+		expect(out).not.toContain('2001');
+		expect(out).not.toMatch(/\d{4}-\d{2}-\d{2}T/);
+	});
+
+	it('handles other delta-seconds values, including zero and large offsets', () => {
+		expect(rateLimited('0')).toContain('0 seconds');
+		expect(rateLimited('120')).toContain('120 seconds');
+		expect(rateLimited('3600')).toContain('3600 seconds');
+		expect(rateLimited('  30  ')).toContain('30 seconds');
+		for (const v of ['0', '120', '3600']) {
+			expect(rateLimited(v)).not.toMatch(/\d{4}-\d{2}-\d{2}T/);
+		}
+	});
+
+	it('echoes an unparseable Retry-After verbatim rather than inventing a time', () => {
+		const out = rateLimited('soon-ish');
+		expect(out).toContain('soon-ish');
+		expect(out).not.toMatch(/\d{4}-\d{2}-\d{2}T/);
+	});
+
+	it('always points the user at n8n Retry On Fail on a 429', () => {
+		for (const v of [undefined, '9', 'Wed, 21 Oct 2026 07:28:00 GMT', 'garbage']) {
+			expect(rateLimited(v)).toMatch(/Retry On Fail/i);
+		}
 	});
 
 	it('does not crash when Retry-After is absent on a 429', () => {

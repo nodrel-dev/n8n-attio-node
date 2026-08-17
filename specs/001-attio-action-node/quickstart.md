@@ -55,7 +55,7 @@ All must pass. `npm pack` then inspect the tarball → `dependencies` empty (SC-
 
 ### Error edges
 - Malformed Values → clear pre-request error.
-- 429 → rate-limit message; `Retry-After` parsed as **date** (research.md R4).
+- 429 → rate-limit message; `Retry-After` read as **delta-seconds or an HTTP date** (research.md R4).
 - `continueOnFail` → one bad item does not abort the batch (FR-13).
 
 ## Verify-live checklist (brief §15 — every item a gate)
@@ -66,7 +66,7 @@ All must pass. `npm pack` then inspect the tarball → `dependencies` empty (SC-
 - [ ] Single-read-scope token 403s on record read with scope-naming message.
 - [ ] Note Create/Get/Get Many/Delete round-trip.
 - [ ] Task Create/Get/Get Many/Update/Delete round-trip; Update has no content field; content unchanged.
-- [ ] 429 surfaces rate-limit message; `Retry-After` parsed as date.
+- [X] 429 surfaces rate-limit message; `Retry-After` handled in both forms (verified live 2026-08-17, T088).
 - [ ] Search `request_as` default `workspace` works with a plain token.
 - [ ] AI-Agent tool path runs Record Create and Get Many.
 - [ ] `@n8n/scan-community-package` passes.

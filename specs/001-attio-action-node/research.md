@@ -68,9 +68,9 @@ Extracted the `security` block for all 21 endpoints from `attio-api-spec/openapi
 
 ## R4. 429 rate limiting and `Retry-After` parsing — [VERIFY-LIVE]
 
-- **Decision**: `formatAttioError` detects 429, surfaces the envelope's `message`/`code` (`rate_limit_error` / `rate_limit_exceeded`), states it is rate limiting, and parses `Retry-After` as an **HTTP date** (reset timestamp), never as a seconds integer. README directs users to n8n's built-in Retry-On-Fail for resilience (declarative nodes cannot implement custom backoff).
-- **Rationale**: Brief §7.1 + §13: `Retry-After` is a date; heavy `/records/query` calls can 429 on score-based complexity, not just request rate. Misreading the header as seconds yields nonsense waits.
-- **[VERIFY-LIVE]**: Trigger a 429 and confirm the header is a date and the message is legible (brief §15).
+- **Decision**: `formatAttioError` detects 429, surfaces the envelope's `message`/`code` (`rate_limit_error` / `rate_limit_exceeded`), states it is rate limiting, and reads `Retry-After` in **either** RFC 9110 §10.2.3 form — **delta-seconds or an HTTP date** — testing for a bare integer first. README directs users to n8n's built-in Retry-On-Fail for resilience (declarative nodes cannot implement custom backoff).
+- **Rationale**: Brief §7.1 + §13 asserted `Retry-After` is *always* a date; heavy `/records/query` calls can 429 on score-based complexity, not just request rate. Misreading the header yields nonsense waits in **both** directions.
+- **[VERIFY-LIVE]**: ✅ **Closed 2026-08-17 (T088) — the brief's premise was wrong.** Live 429s show Attio sends **both** forms: `GET /v2/self` → `Mon, 17 Aug 2026 14:30:00 GMT`; the `POST /v2/objects/{object}/records/query` concurrency limiter → **`9`**. Date-parsing first was an active bug, because `new Date('9')` is a valid Date — the seconds form rendered as `2001-09-01T00:00:00.000Z` (and `0` → `2000-01-01`). Rate limits are **per endpoint**: `/v2/self` exhausts cheaply and holds for minutes, while the records-query limiter needs ~100+ concurrent requests and decays in 1–2s.
 
 ---
 
@@ -122,7 +122,7 @@ Extracted the `security` block for all 21 endpoints from `attio-api-spec/openapi
 | R1 Update verb switch (decision 8) | **Resolved — declarative per-option routing; no `execute`** |
 | R2 Scope blocks | Resolved (refined beyond brief §4.3); live-confirm pairings |
 | R3 `request_as` with plain token | Design resolved; [VERIFY-LIVE] |
-| R4 429 / `Retry-After` as date | Design resolved; [VERIFY-LIVE] |
+| R4 429 / `Retry-After` seconds-or-date | Resolved + verified live 2026-08-17 (T088); the date-only premise was wrong |
 | R5 Task content write-once | Resolved (locked); [VERIFY-LIVE] |
 | R6 Decision Gate 0 eligibility | Process resolved; [VERIFY-LIVE], blocks scaffolding |
 | R7 `getObjects` loadOptions | Resolved |

@@ -24,6 +24,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import { formatAttioError, type AttioErrorEnvelope } from '../core/formatAttioError';
+import { readHeader } from '../core/readHeader';
 import { buildValuesBody } from '../core/buildValuesBody';
 import { buildQueryBody, type QueryBodyInput, type QuerySort } from '../core/buildQueryBody';
 import { buildSearchBody, type SearchBodyInput, type SearchRequestAs } from '../core/buildSearchBody';
@@ -377,17 +378,6 @@ export function makeDeleteSuccess(jsonKey: string, paramName: string): PostRecei
 	};
 }
 
-function readHeader(
-	headers: IN8nHttpFullResponse['headers'],
-	name: string,
-): string | undefined {
-	if (!headers) {
-		return undefined;
-	}
-	const bag = headers as Record<string, unknown>;
-	const value = bag[name] ?? bag[name.toLowerCase()];
-	if (Array.isArray(value)) {
-		return value[0] as string | undefined;
-	}
-	return value as string | undefined;
-}
+// `readHeader` now lives in `core/readHeader.ts` so its case handling is unit-testable
+// without pulling n8n types into the pure core. The local copy it replaced matched only the
+// exact and lower-cased name, so a canonical `Retry-After` silently read as `undefined`.
