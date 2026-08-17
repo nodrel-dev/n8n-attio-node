@@ -368,9 +368,12 @@ export const recordDescription: INodeProperties[] = [
 		displayName: 'Limit',
 		name: 'searchLimit',
 		type: 'number',
-		typeOptions: { minValue: 1 },
-		default: 50,
-		description: 'Max number of results to return',
+		// Attio's search endpoint caps `limit` at 25 (verified live 2026-08-17) — unlike
+		// records/query, which takes far more. A default of 50 made Search 400 on its own
+		// defaults, so the ceiling is both the default and the maximum here.
+		typeOptions: { minValue: 1, maxValue: 25 },
+		default: 25,
+		description: 'Max number of results to return (Attio caps search results at 25)',
 		displayOptions: { show: { resource: ['record'], operation: ['search'] } },
 	},
 	{
