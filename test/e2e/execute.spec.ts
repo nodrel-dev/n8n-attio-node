@@ -37,4 +37,29 @@ test.describe('executing from the editor', () => {
 		expect(output).toContain('record_id');
 		expect(output).not.toMatch(/error/i);
 	});
+
+	/**
+	 * Regression: Search used to ship a Limit default of 50, but Attio's search
+	 * endpoint caps `limit` at 25 — so the operation 400'd on its own defaults.
+	 * This deliberately fills only the required params and leaves Limit untouched,
+	 * because the defaults are exactly what was broken.
+	 */
+	test('Search succeeds on its default Limit', async ({ seed, ndv }) => {
+		const node = await seed({
+			name: 'execute search defaults',
+			parameters: {
+				resource: 'record',
+				operation: 'search',
+				query: 'a',
+				searchObjects: ['companies'],
+			},
+		});
+
+		await ndv.open(node.ndvPath);
+		await ndv.executeNode();
+
+		const output = await ndv.outputText();
+		expect(output).not.toMatch(/less than or equal to|too_big|validation/i);
+		expect(output).not.toMatch(/error/i);
+	});
 });
