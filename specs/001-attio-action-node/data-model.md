@@ -37,7 +37,7 @@ This node has no persistent storage. "Entities" here are (a) the domain objects 
 - Test: `GET /v2/self` (valid → save; invalid → fail at dialog).
 
 ### Error envelope
-- `{ status_code: number, type: string, code: string, message: string }`. 400/401/403/404/429 all share this shape. 429 adds a `Retry-After` **date** header.
+- `{ status_code: number, type: string, code: string, message: string }`. 400/401/403/404/429 all share this shape. 429 adds a `Retry-After` header that is **either delta-seconds or an HTTP date** (RFC 9110 §10.2.3) depending on which limiter trips — both observed live 2026-08-17.
 
 ---
 
@@ -82,7 +82,7 @@ formatAttioError(status: number, body: AttioErrorEnvelope): string;  // 403→sc
 - Upsert: `matching_attribute` MUST be non-empty → else validation error pre-request (AS-B2, FR-5).
 - `buildQueryBody`: `filter` and `filter_view_id` are mutually exclusive.
 - `buildTaskUpdateBody`: never includes `content`.
-- `formatAttioError`: never echoes the token; surfaces `code`/`message` verbatim; 403 → "likely missing scope" + the scope set for that op group; 429 → rate-limit message + `Retry-After` parsed as date.
+- `formatAttioError`: never echoes the token; surfaces `code`/`message` verbatim; 403 → "likely missing scope" + the scope set for that op group; 429 → rate-limit message + `Retry-After` read as delta-seconds **or** an HTTP date (integer tested first; `new Date('9')` parses, so date-first was a live bug — T088).
 
 ---
 

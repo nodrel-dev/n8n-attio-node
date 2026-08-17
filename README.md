@@ -106,9 +106,11 @@ _Record → Create_ and _Record → Get Many_ by their action names.
 
 ## Rate limiting
 
-Attio can return `429` with a `Retry-After` **date** (not a seconds count) — heavy query calls can be
-rate-limited on complexity, not just request rate. The node surfaces a clear rate-limit message and the
-parsed reset time. For automatic resilience, enable n8n's built-in **Retry On Fail** on the node.
+Attio can return `429` with a `Retry-After` header in **either** form allowed by RFC 9110 §10.2.3 — an
+HTTP **date** (a reset timestamp) or **delta-seconds** — depending on which limiter trips. Limits are
+per endpoint: heavy query calls can be rate-limited on complexity, not just request rate. The node
+reads both forms and surfaces a clear rate-limit message with the reset time or the delay. For
+automatic resilience, enable n8n's built-in **Retry On Fail** on the node.
 
 ## Support boundary
 

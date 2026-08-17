@@ -7,7 +7,8 @@
  *   - 401 -> authentication hint
  *   - 403 -> "likely a missing scope" + the scope set for that operation group
  *   - 404 -> not-found hint
- *   - 429 -> rate-limit message + Retry-After parsed as a DATE (never seconds)
+ *   - 429 -> rate-limit message + Retry-After read as EITHER delta-seconds or an HTTP-date
+ *            (RFC 9110 §10.2.3); Attio sends both, so seconds are detected first
  *
  * The function is never given the API token, so it cannot echo it (NFR-9).
  */
@@ -63,17 +64,33 @@ function buildHint(status: number, context: AttioErrorContext): string | undefin
 	}
 }
 
+/**
+ * `Retry-After` is either `delta-seconds` or an `HTTP-date` (RFC 9110 §10.2.3), and **Attio
+ * sends both** depending on which limiter trips — verified live 2026-08-17: `/v2/self` gave
+ * `Mon, 17 Aug 2026 14:30:00 GMT`, the records-query concurrency limiter gave `9`.
+ *
+ * Seconds must be ruled out FIRST. `new Date('9')` is a valid Date (2001-09-01) and `new
+ * Date('0')` is 2000-01-01, so date-parsing first turns a short retry delay into a timestamp
+ * decades in the past — wrong, and wrong in a way that reads as authoritative.
+ */
 function buildRateLimitHint(retryAfter: string | null | undefined): string {
 	let hint = 'Rate limited by Attio.';
-	if (retryAfter) {
-		const resetAt = new Date(retryAfter);
-		if (!Number.isNaN(resetAt.getTime())) {
-			// Retry-After is an HTTP date (a reset timestamp), not a seconds count.
-			hint += ` Retry after ${resetAt.toISOString()} (Retry-After: ${retryAfter}).`;
+	const raw = retryAfter?.trim();
+
+	if (raw) {
+		if (/^\d+$/.test(raw)) {
+			const seconds = Number(raw);
+			hint += ` Retry after ${seconds} seconds (Retry-After: ${raw}).`;
 		} else {
-			hint += ` Retry-After header: ${retryAfter}.`;
+			const resetAt = new Date(raw);
+			if (!Number.isNaN(resetAt.getTime())) {
+				hint += ` Retry after ${resetAt.toISOString()} (Retry-After: ${raw}).`;
+			} else {
+				hint += ` Retry-After header: ${raw}.`;
+			}
 		}
 	}
+
 	hint += ' Enable n8n "Retry On Fail" on this node for automatic backoff.';
 	return hint;
 }
