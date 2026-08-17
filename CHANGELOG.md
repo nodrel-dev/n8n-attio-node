@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.6...v0.2.7) (2026-08-17)
+
+
+### Documentation
+
+* correct stale publish story and operation counts ([#20](https://github.com/nodrel-dev/n8n-attio-node/issues/20)) ([f8e0e4d](https://github.com/nodrel-dev/n8n-attio-node/commit/f8e0e4dd4f7238b4952ec877990d8ea93129cd32))
+
 ## [0.2.6](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.5...v0.2.6) (2026-08-16)
 
 
