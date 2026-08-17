@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.8](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.7...v0.2.8) (2026-08-17)
+
+
+### Bug Fixes
+
+* cap record search limit at Attio's maximum of 25 ([#24](https://github.com/nodrel-dev/n8n-attio-node/issues/24)) ([bf03f90](https://github.com/nodrel-dev/n8n-attio-node/commit/bf03f9050abbd4e0f00d980a3e99f0295f14f3bd))
+* read Retry-After as seconds or a date, not always a date ([#23](https://github.com/nodrel-dev/n8n-attio-node/issues/23)) ([0c79dd7](https://github.com/nodrel-dev/n8n-attio-node/commit/0c79dd7fea9a18fde74ae3b72f0e784a1ee27163))
+
 ## [0.2.7](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.6...v0.2.7) (2026-08-17)
 
 
