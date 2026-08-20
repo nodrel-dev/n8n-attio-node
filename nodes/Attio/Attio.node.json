@@ -1,8 +1,8 @@
 {
-	"node": "n8n-nodes-base.attio",
+	"node": "@nodrel-dev/n8n-nodes-attio.attio",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["CRM"],
+	"categories": ["Sales"],
 	"resources": {
 		"credentialDocumentation": [
 			{
