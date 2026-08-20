@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.9](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.8...v0.2.9) (2026-08-20)
+
+
+### Bug Fixes
+
+* correct codex node prefix and use a supported category ([#26](https://github.com/nodrel-dev/n8n-attio-node/issues/26)) ([29243d8](https://github.com/nodrel-dev/n8n-attio-node/commit/29243d805e1dcd0f49c044a27e6edbc1a64d02cc))
+
 ## [0.2.8](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.7...v0.2.8) (2026-08-17)
 
 
