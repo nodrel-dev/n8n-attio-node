@@ -4,6 +4,27 @@
 
 **Input**: Feature specification from `/specs/001-attio-action-node/spec.md`; authoritative requirements in `internal/attio-node-build-brief.md`.
 
+## Status — historical design record
+
+**This plan describes the v1 feature as specified on 2026-06-22. It is not a live plan.** The node
+shipped and is published to npm; the code, `CLAUDE.md` and the README describe current behaviour.
+Parts of this document were superseded during implementation and after:
+
+- **`publish.yml` is not triggered by `release: published`** (as the Summary below states).
+  release-please creates the Release with `GITHUB_TOKEN`, and GitHub does not fire
+  workflow-triggering events for `GITHUB_TOKEN` actions, so that trigger never fired — `v0.2.4` was
+  tagged and released but never reached npm. `publish.yml` is now `workflow_call`-only and
+  `release-please.yml` invokes it directly, which is also what npm Trusted Publishing authorises.
+- **Toolchain floors moved.** `@n8n/node-cli` is now `^0.46.4` (not `>= 0.23.0`) and `n8n-workflow`
+  `^2.38.1` (not `^1.70.0`), bumped to clear critical and high dependency advisories.
+- **Routing URLs encode their path segments.** Every `$parameter` in a routing path is wrapped in
+  `encodeURIComponent`; a raw segment could collapse `..` during URL normalisation and retarget the
+  request. See `test/core/pathSegmentEncoding.test.ts`.
+- **`package.json` may not carry an `overrides` field** — `@n8n/community-nodes/no-overrides-field`
+  rejects it for community node packages, and failing that rule blocks n8n Cloud verification.
+- **Decision Gate 0** (Creator Portal eligibility, listed below as "not yet cleared") was cleared;
+  the package is published as `@nodrel-dev/n8n-nodes-attio`.
+
 ## Summary
 
 Build `n8n-nodes-attio`, a verification-track n8n community **action node** that talks directly to the Attio REST API v2 using a single workspace API token. v1 covers three resources — Record (9 ops), Note (4 ops), Task (5 ops) = 18 operations — plus a dynamic Object dropdown sourced from `GET /v2/objects`. The node is **declarative-style** (`requestDefaults` + per-operation `routing`), with **zero runtime dependencies**, a `GET /v2/self` credential test, faithful Attio error surfacing, and a small framework-free pure core that is unit-tested before any wiring.

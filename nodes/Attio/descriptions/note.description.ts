@@ -41,7 +41,7 @@ export const noteDescription: INodeProperties[] = [
 				value: 'delete',
 				action: 'Delete a note',
 				routing: {
-					request: { method: 'DELETE', url: '=/v2/notes/{{$parameter.noteId}}' },
+					request: { method: 'DELETE', url: '=/v2/notes/{{encodeURIComponent($parameter.noteId)}}' },
 					output: {
 						postReceive: [
 							makeAttioErrorPostReceive(NOTE_DELETE_SCOPES),
@@ -55,7 +55,7 @@ export const noteDescription: INodeProperties[] = [
 				value: 'get',
 				action: 'Get a note',
 				routing: {
-					request: { method: 'GET', url: '=/v2/notes/{{$parameter.noteId}}' },
+					request: { method: 'GET', url: '=/v2/notes/{{encodeURIComponent($parameter.noteId)}}' },
 					output: { postReceive: [makeAttioErrorPostReceive(NOTE_READ_SCOPES), unwrapData] },
 				},
 			},

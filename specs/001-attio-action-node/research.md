@@ -1,5 +1,7 @@
 # Phase 0 Research: Attio Action Node
 
+> **Historical Phase 0 record (2026-06-22).** Decisions here informed the v1 build and some were superseded during implementation — notably the toolchain floors (`@n8n/node-cli` is now `^0.46.4`, `n8n-workflow` `^2.38.1`). See the status block at the top of [plan.md](./plan.md) for the full list, and the code and `CLAUDE.md` for current behaviour.
+
 All NEEDS CLARIFICATION items for the plan are resolved below. Locked decisions (brief §12) are not reopened. Items marked **[VERIFY-LIVE]** remain gates to confirm against a real workspace during implementation (brief §15) but their *plan-time* design question is resolved here.
 
 ---

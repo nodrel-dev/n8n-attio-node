@@ -38,7 +38,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/v2/objects/{{$parameter.object}}/records',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records',
 					},
 					send: { preSend: [makeValuesBodyPreSend()] },
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_WRITE_SCOPES), unwrapData] },
@@ -52,7 +52,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'PUT',
-						url: '=/v2/objects/{{$parameter.object}}/records',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records',
 					},
 					send: { preSend: [makeMatchingAttributePreSend(), makeValuesBodyPreSend()] },
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_WRITE_SCOPES), unwrapData] },
@@ -66,7 +66,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'DELETE',
-						url: '=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/{{encodeURIComponent($parameter.recordId)}}',
 					},
 					output: {
 						postReceive: [
@@ -83,7 +83,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/{{encodeURIComponent($parameter.recordId)}}',
 					},
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_READ_SCOPES), unwrapData] },
 				},
@@ -97,7 +97,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'POST',
-						url: '=/v2/objects/{{$parameter.object}}/records/query',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/query',
 					},
 					send: {
 						preSend: [makeQueryBodyPreSend()],
@@ -125,7 +125,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}/attributes/{{$parameter.attribute}}/values',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/{{encodeURIComponent($parameter.recordId)}}/attributes/{{encodeURIComponent($parameter.attribute)}}/values',
 					},
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_READ_SCOPES), unwrapData] },
 				},
@@ -137,7 +137,7 @@ export const recordDescription: INodeProperties[] = [
 				routing: {
 					request: {
 						method: 'GET',
-						url: '=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}/entries',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/{{encodeURIComponent($parameter.recordId)}}/entries',
 					},
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_LIST_ENTRY_SCOPES), unwrapData] },
 				},
@@ -164,7 +164,7 @@ export const recordDescription: INodeProperties[] = [
 				// Overwrite→PUT, research.md R1); only the url/body/response are set here.
 				routing: {
 					request: {
-						url: '=/v2/objects/{{$parameter.object}}/records/{{$parameter.recordId}}',
+						url: '=/v2/objects/{{encodeURIComponent($parameter.object)}}/records/{{encodeURIComponent($parameter.recordId)}}',
 					},
 					send: { preSend: [makeValuesBodyPreSend()] },
 					output: { postReceive: [makeAttioErrorPostReceive(RECORD_WRITE_SCOPES), unwrapData] },

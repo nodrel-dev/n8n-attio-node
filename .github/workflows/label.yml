@@ -1,22 +1,35 @@
-# This workflow will triage pull requests and apply a label based on the
-# paths that are modified in the pull request.
+# Applies labels to a PR based on the paths it modifies (config: .github/labeler.yml).
 #
-# To use this workflow, you will need to set up a .github/labeler.yml
-# file with configuration.  For more information, see:
-# https://github.com/actions/labeler
+# SECURITY — this workflow runs on `pull_request_target`, which is required so that PRs from
+# forks get a token with `pull-requests: write`. That trigger runs in the context of the BASE
+# repository with access to secrets, and — unlike `pull_request` — it is triggered by untrusted
+# contributors. Two rules keep that safe, and both must hold for any step added here:
+#
+#   1. NEVER add `actions/checkout` (or any step that fetches the PR head). Checking out and
+#      then building/linting/running fork-authored code under this trigger executes untrusted
+#      code with a write-capable token — the classic "pwn request" repo takeover.
+#   2. NEVER interpolate PR-controlled text (title, branch name, body) directly into a `run:`
+#      block. Pass it through `env:` instead, as ci.yml does for the PR title.
+#
+# `actions/labeler` reads the PR's changed-file list through the API and writes labels. It does
+# not check out or execute PR content, so it is safe under this trigger. Permissions stay at the
+# minimum the action needs, and the action is pinned to a full commit SHA because git tags are
+# mutable — `@v7` could be repointed at malicious code by a compromised upstream account.
 
 name: Labeler
+
 on: [pull_request_target]
+
+permissions: {}
 
 jobs:
   label:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
 
     steps:
-    - uses: actions/labeler@v7
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
