@@ -53,7 +53,7 @@ export const taskDescription: INodeProperties[] = [
 				value: 'delete',
 				action: 'Delete a task',
 				routing: {
-					request: { method: 'DELETE', url: '=/v2/tasks/{{$parameter.taskId}}' },
+					request: { method: 'DELETE', url: '=/v2/tasks/{{encodeURIComponent($parameter.taskId)}}' },
 					output: {
 						postReceive: [
 							makeAttioErrorPostReceive(TASK_DELETE_SCOPES),
@@ -67,7 +67,7 @@ export const taskDescription: INodeProperties[] = [
 				value: 'get',
 				action: 'Get a task',
 				routing: {
-					request: { method: 'GET', url: '=/v2/tasks/{{$parameter.taskId}}' },
+					request: { method: 'GET', url: '=/v2/tasks/{{encodeURIComponent($parameter.taskId)}}' },
 					output: { postReceive: [makeAttioErrorPostReceive(TASK_READ_SCOPES), unwrapData] },
 				},
 			},
@@ -103,7 +103,7 @@ export const taskDescription: INodeProperties[] = [
 				action: 'Update a task',
 				// No Content field — task content is write-once (Principle VI/FR-14).
 				routing: {
-					request: { method: 'PATCH', url: '=/v2/tasks/{{$parameter.taskId}}' },
+					request: { method: 'PATCH', url: '=/v2/tasks/{{encodeURIComponent($parameter.taskId)}}' },
 					send: { preSend: [makeTaskUpdateBodyPreSend()] },
 					output: { postReceive: [makeAttioErrorPostReceive(TASK_WRITE_SCOPES), unwrapData] },
 				},
