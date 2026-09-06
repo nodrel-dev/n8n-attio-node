@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.10](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.9...v0.2.10) (2026-09-06)
+
+
+### Bug Fixes
+
+* encode routing path segments, clear dependency advisories, pin CI actions ([#28](https://github.com/nodrel-dev/n8n-attio-node/issues/28)) ([fd5b2d2](https://github.com/nodrel-dev/n8n-attio-node/commit/fd5b2d2f6cabefa81c11b45de758601842d21e87))
+
 ## [0.2.9](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.8...v0.2.9) (2026-08-20)
 
 
