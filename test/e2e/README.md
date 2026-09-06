@@ -71,16 +71,25 @@ nothing. Seeded n8n workflows are deleted after each test.
   clicking. Do not swap that for `dispatchEvent` or `{force: true}`: both bypass
   Playwright's actionability check, so they no-op against the disabled input and the
   resulting empty dropdown is indistinguishable from a broken `loadOptions`.
+- The node creator's search is **asynchronous**: clicking `item-iterator-item.first()` straight
+  after filling the search bar races the filter and lands on the unfiltered list's first entry (a
+  trigger), which n8n adds to the canvas before closing the panel. Assert the first result first
+  (`expect(results.first()).toContainText('Attio')`) so Playwright waits for the filtered render.
+- Action group headings are **"Record Actions"** in the DOM, uppercased by CSS `text-transform`.
+  `getByText` matches `textContent`, not the rendered form, so match them case-insensitively — a
+  literal `'RECORD ACTIONS'` worked on 2.25.x and silently stopped matching by 2.37.x.
 - n8n 2.x will not delete an unarchived workflow — `DELETE /rest/workflows/{id}`
   returns `400 Workflow must be archived before it can be deleted`. `deleteWorkflow`
   archives first and checks both statuses.
 
 ## Verification status
 
-Last verified green against n8n **2.25.7** (`n8nio/n8n:latest`, 2026-08-17): 25/25, no workflows
-and no Attio records left behind.
+Last verified green against n8n **2.37.10** (`n8nio/n8n:latest`, 2026-09-05): 26/26, no seeded
+workflows and no Attio records left behind. This run covers the `n8n-workflow` 1.x -> 2.x and
+`@n8n/node-cli` 0.23 -> 0.46 bumps.
 
-> **Not re-run since the toolchain bump.** `n8n-workflow` moved from `^1.70.0` to `^2.38.1` (and
-> `@n8n/node-cli` to `^0.46.4`) to clear dependency advisories. Lint, typecheck, build and the unit
-> suite pass on the new majors, but this suite has not been run against them — do one full pass
-> through the harness before the next release.
+Previously verified against n8n 2.25.7 (2026-08-17).
+
+> **The harness pulls `n8nio/n8n:latest`, so n8n moves under this suite between runs.** Two
+> editor-behaviour changes surfaced going from 2.25.7 to 2.37.10, both in the suite rather than in
+> the node — see the notes below. Expect to re-check selectors after a long gap.

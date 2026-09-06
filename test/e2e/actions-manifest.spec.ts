@@ -29,13 +29,34 @@ const TASK_ACTIONS = [
 	'Update a task',
 ];
 
+/**
+ * n8n renders these group headings as "Record Actions" in the DOM and uppercases them with CSS
+ * `text-transform`. Playwright's `getByText` matches `textContent`, not the rendered form, so a
+ * literal 'RECORD ACTIONS' stopped matching when n8n moved the casing into CSS (it matched up to
+ * n8n 2.25.x and broke by 2.37.x). Case-insensitive patterns match either rendering.
+ */
+const GROUP_HEADINGS = {
+	record: /^record actions$/i,
+	note: /^note actions$/i,
+	task: /^task actions$/i,
+} as const;
+
 test.describe('actions manifest', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/workflow/new');
 		await page.getByTestId('node-creator-plus-button').click();
 		await page.getByTestId('node-creator-search-bar').fill('Attio');
-		await page.getByTestId('item-iterator-item').first().click();
-		await expect(page.getByText('RECORD ACTIONS')).toBeVisible();
+
+		// Wait for the search to actually re-render before clicking. Clicking `.first()`
+		// straight after `fill` races the filter: the creator still holds its unfiltered
+		// list, so the click lands on a trigger ("On a Schedule"), n8n adds that node and
+		// closes the panel, and every assertion below then fails on a missing actions list.
+		// Asserting the first result is Attio auto-waits for the filtered render.
+		const results = page.getByTestId('item-iterator-item');
+		await expect(results.first()).toContainText('Attio');
+		await results.first().click();
+
+		await expect(page.getByText(GROUP_HEADINGS.record)).toBeVisible();
 	});
 
 	test('exposes exactly 18 actions', async ({ page }) => {
@@ -43,7 +64,7 @@ test.describe('actions manifest', () => {
 	});
 
 	test('groups actions under Record, Note and Task headings', async ({ page }) => {
-		for (const heading of ['RECORD ACTIONS', 'NOTE ACTIONS', 'TASK ACTIONS']) {
+		for (const heading of Object.values(GROUP_HEADINGS)) {
 			await expect(page.getByText(heading)).toBeVisible();
 		}
 	});
