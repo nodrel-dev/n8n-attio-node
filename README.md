@@ -169,11 +169,66 @@ Releases are fully automated. **Never bump the version by hand and never publish
 - Require PRs (no direct pushes) so every change flows through CI and a squash-merge title
   `release-please` can read.
 
+### CI gates
+
+`ci.yml` runs on every PR and every push to `main`. Beyond lint / typecheck / build / test it
+enforces the invariants that keep this package publishable:
+
+| Gate | What it protects |
+|---|---|
+| `npm audit --omit=dev --audit-level=low` | **Blocking.** With zero runtime dependencies this is the audit that reaches users; it must stay clean. |
+| `npm audit` (full) | **Report-only.** Dev-toolchain advisories stay visible without failing the build — `@n8n/node-cli` pulls a large LangChain subtree this project never uses, and those findings have no upstream fix and never enter the tarball. |
+| Zero-dependency gate | `dependencies` must stay `{}`. |
+| No-env / no-filesystem gate | No `process.env` or `fs` under `nodes/`. |
+| `@n8n/scan-community-package` | Runs against the published package once it exists. |
+| `pr-title` (commitlint) | The squash-merge title `release-please` will read. |
+
+`npm audit` will report moderate advisories in the dev toolchain. They cannot be pinned away: the
+`overrides` field is rejected for community node packages by
+`@n8n/community-nodes/no-overrides-field`, and failing that rule blocks n8n Cloud verification.
+
 ### Least-privilege `GITHUB_TOKEN`
 
-- `ci.yml` declares top-level `permissions: contents: read`.
-- `release-please.yml` needs `contents: write` + `pull-requests: write` (only that workflow).
-- `publish.yml` needs `contents: read` + `id-token: write` (only that workflow).
+Every workflow declares its own permissions; none inherit the repository default.
+
+| Workflow | Permissions | Why |
+|---|---|---|
+| `ci.yml` | `contents: read` | Read-only build and test. |
+| `codeql.yml` | top-level `{}`; job needs `security-events: write`, `packages: read`, `actions: read`, `contents: read` | Uploads scanning results. |
+| `label.yml` | top-level `{}`; job needs `contents: read`, `pull-requests: write` | Applies labels to PRs. |
+| `stale.yml` | top-level `{}`; job needs `issues: write`, `pull-requests: write` | Marks and closes stale threads. |
+| `release-please.yml` | `contents: write`, `pull-requests: write` | Cuts tags, releases and the release PR. |
+| `publish.yml` | `contents: read`, `id-token: write` | OIDC needs `id-token` on **parent and child**. |
+
+### Pinned actions
+
+All third-party actions are pinned to a **full commit SHA**, with the human-readable version in a
+trailing comment so Dependabot can still offer updates:
+
+```yaml
+- uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+```
+
+Git tags are mutable — `@v4` is a pointer the upstream owner can move at any time. That matters most
+on the publish path: `release-please.yml` is the sole entry point npm authorises for Trusted
+Publishing and it hands `id-token: write` down to `publish.yml`, so an action swapped underneath
+that chain could mint the OIDC token and publish arbitrary code as this package. **Keep any new
+action pinned the same way.** The only unpinned `uses:` is the in-repo
+`./.github/workflows/publish.yml`, which is a path, not a third-party reference.
+
+### `pull_request_target` in `label.yml`
+
+`label.yml` runs on `pull_request_target` so PRs from forks get a token that can write labels. That
+trigger runs in the base repository's context with access to secrets and **is triggered by untrusted
+contributors**. Two rules keep it safe, and both must hold for any step added there:
+
+1. **Never add `actions/checkout`** or any step that fetches the PR head. Building or running
+   fork-authored code under this trigger executes untrusted code with a write-capable token.
+2. **Never interpolate PR-controlled text** (title, branch name, body) into a `run:` block. Pass it
+   through `env:` instead, as `ci.yml` does for the PR title.
+
+`actions/labeler` reads the changed-file list through the API and never checks out or executes PR
+content, which is why it is safe under this trigger.
 
 ## License
 

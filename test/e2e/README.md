@@ -75,5 +75,12 @@ nothing. Seeded n8n workflows are deleted after each test.
   returns `400 Workflow must be archived before it can be deleted`. `deleteWorkflow`
   archives first and checks both statuses.
 
-Verified green against n8n **2.25.7** (`n8nio/n8n:latest`, 2026-08-17): 25/25, no
-workflows and no Attio records left behind.
+## Verification status
+
+Last verified green against n8n **2.25.7** (`n8nio/n8n:latest`, 2026-08-17): 25/25, no workflows
+and no Attio records left behind.
+
+> **Not re-run since the toolchain bump.** `n8n-workflow` moved from `^1.70.0` to `^2.38.1` (and
+> `@n8n/node-cli` to `^0.46.4`) to clear dependency advisories. Lint, typecheck, build and the unit
+> suite pass on the new majors, but this suite has not been run against them — do one full pass
+> through the harness before the next release.
