@@ -27,6 +27,18 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # The published package has ZERO runtime dependencies, so this is the audit that
+      # actually protects users — it must stay clean. The full `npm audit` reports findings in
+      # the dev toolchain (@n8n/node-cli pulls a large LangChain tree it never uses here); those
+      # never reach the tarball and cannot be pinned away, because @n8n/community-nodes bans the
+      # `overrides` field in community node packages. Reported, not gated.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=low
+
+      - name: Audit dev toolchain (report only)
+        continue-on-error: true
+        run: npm audit
+
       - name: Scan community package
         # @n8n/scan-community-package analyses the PUBLISHED package from the npm registry;
         # it has no local/tarball mode. Before the first publish it is skipped (keeps the
