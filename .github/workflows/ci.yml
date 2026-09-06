@@ -14,9 +14,9 @@ jobs:
     name: Lint, scan, typecheck, build, test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22.22'
           cache: npm
@@ -36,8 +36,11 @@ jobs:
         run: npm audit --omit=dev --audit-level=low
 
       - name: Audit dev toolchain (report only)
-        continue-on-error: true
-        run: npm audit
+        # `|| true` rather than `continue-on-error`: the latter still records a failed step
+        # and GitHub renders it as a red "Process completed with exit code 1" annotation on
+        # an otherwise green run. npm audit exits non-zero whenever it finds anything, and
+        # here that is expected, so swallow the status and keep the report in the log.
+        run: npm audit || true
 
       - name: Scan community package
         # @n8n/scan-community-package analyses the PUBLISHED package from the npm registry;
@@ -76,9 +79,9 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22.22'
           cache: npm
