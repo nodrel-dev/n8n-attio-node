@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.11](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.10...v0.2.11) (2026-09-07)
+
+
+### Documentation
+
+* reconcile constitution and design record with the shipped node ([#32](https://github.com/nodrel-dev/n8n-attio-node/issues/32)) ([ec54d09](https://github.com/nodrel-dev/n8n-attio-node/commit/ec54d09faed503742cc960fbdbe453e83fe19a97))
+
 ## [0.2.10](https://github.com/nodrel-dev/n8n-attio-node/compare/v0.2.9...v0.2.10) (2026-09-06)
 
 
