@@ -86,9 +86,9 @@ Extracted the `security` block for all 21 endpoints from `attio-api-spec/openapi
 
 ## R6. Decision Gate 0 — fresh-package eligibility — [VERIFY-LIVE]
 
-- **Decision**: Confirm with the n8n Creator Portal, **before scaffolding**, that a fresh hand-built package under the Nodrel identity is accepted for verification given the existing thin auto-generated `n8n-nodes-attio`, rather than a PR being required. If the Portal mandates a scoped name, capture `@nodrel/n8n-nodes-attio` before scaffolding (it is baked into `package.json`, the npm Trusted Publisher config, and credential/node type IDs).
+- **Decision**: Confirm with the n8n Creator Portal, **before scaffolding**, that a fresh hand-built package under the Nodrel identity is accepted for verification given the existing thin auto-generated `n8n-nodes-attio`, rather than a PR being required. If the Portal mandates a scoped name, capture a scoped name before scaffolding (it is baked into `package.json`, the npm Trusted Publisher config, and credential/node type IDs).
 - **Rationale**: The package name is foundational and expensive to change post-scaffold (Principle XIII, brief §3).
-- **[VERIFY-LIVE]**: Blocking gate; the scaffolding task depends on it.
+- **[VERIFY-LIVE]**: ✅ **Closed.** Gate cleared; the package ships as `@nodrel-dev/n8n-nodes-attio`.
 
 ---
 
@@ -110,7 +110,7 @@ Extracted the `security` block for all 21 endpoints from `attio-api-spec/openapi
 
 ## R9. Toolchain, test runner, and CI specifics
 
-- **Decision**: Scaffold via `npm create @n8n/node`; `@n8n/node-cli` **>= 0.23.0** devDependency (required for the provenance publish flow); Node **>= 22.22**; TypeScript strict with **incremental OFF**. Test runner: use whatever the n8n-node CLI scaffold ships (Jest in current scaffolds); pure-core tests are plain TS with no n8n imports, so the runner choice is non-binding. `release-please-action@v4` with `release-type: node`; two-workflow split (`release-please.yml` + scaffold `publish.yml`); `ci.yml` gates per brief §18.4 incl. the zero-dep script (`node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?1:0)"`) and PR-title commitlint. lefthook wires `commit-msg`→commitlint and `pre-commit`→lint locally.
+- **Decision**: Scaffold via `npm create @n8n/node`; `@n8n/node-cli` **>= 0.23.0** devDependency (superseded — now `^0.46.4`; `n8n-workflow` now `^2.38.1`) (required for the provenance publish flow); Node **>= 22.22**; TypeScript strict with **incremental OFF**. Test runner: use whatever the n8n-node CLI scaffold ships (Jest in current scaffolds); pure-core tests are plain TS with no n8n imports, so the runner choice is non-binding. `release-please-action@v4` with `release-type: node`; two-workflow split (`release-please.yml` + scaffold `publish.yml`); `ci.yml` gates per brief §18.4 incl. the zero-dep script (`node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?1:0)"`) and PR-title commitlint. lefthook wires `commit-msg`→commitlint and `pre-commit`→lint locally.
 - **Rationale**: Matches the locked Nodrel toolchain (brief §16/§18). **Correction 2026-08-16 (as-built):** the original rationale — inheriting `publish.yml` as the Trusted-Publisher workflow name — is invalid. npm authorises the *entry-point* workflow of a run, not the reusable workflow that contains `npm publish`, so the registered workflow is **`release-please.yml`**; `publish.yml` is `workflow_call`-only.
 - **Open (non-blocking)**: Initial version / 1.0.0 cut — verification submission is the natural 1.0.0 trigger; start pre-1.0 via `.release-please-manifest.json`. Decided at release time, not a code gate.
 - **[VERIFY-LIVE]** ✓ **2026-08-16**: OIDC trusted publishing works with no stored `NPM_TOKEN` (brief §18.7). 0.2.6 published token-free, provenance signed to the Sigstore transparency log; the `NPM_TOKEN` secret has been deleted and the repo now has zero Actions secrets. Requires npm >= 11.5.1 and `id-token: write` on both parent and child workflow.

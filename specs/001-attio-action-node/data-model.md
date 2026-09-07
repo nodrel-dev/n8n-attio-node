@@ -1,5 +1,11 @@
 # Phase 1 Data Model: Attio Action Node
 
+> **Historical design record (2026-06-22).** This describes the v1 feature *as specified*. The node
+> has since shipped and is published as `@nodrel-dev/n8n-nodes-attio` (Record 9 + Note 4 + Task 5 =
+> **18 operations**). Statements here that implementation superseded are listed in the status block
+> at the top of [plan.md](./plan.md). For current behaviour use the code, `CLAUDE.md` and the
+> README — not this file.
+
 This node has no persistent storage. "Entities" here are (a) the domain objects exchanged with Attio, (b) the n8n parameter surface, and (c) the pure-core function types. Field names trace to brief §5–§9.
 
 ---

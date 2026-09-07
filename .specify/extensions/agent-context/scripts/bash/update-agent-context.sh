@@ -150,10 +150,15 @@ TMP_SECTION="$(mktemp)"
 trap 'rm -f "$TMP_SECTION"' EXIT
 {
   echo "$MARKER_START"
-  echo "For additional context about technologies to be used, project structure,"
-  echo "shell commands, and other important information, read the current plan"
   if [[ -n "$PLAN_PATH" ]]; then
-    echo "at $PLAN_PATH"
+    echo "The feature design record lives at $PLAN_PATH (with research.md,"
+    echo "data-model.md, contracts/ and quickstart.md alongside it). It is a"
+    echo "HISTORICAL record of how the feature was specified, not a live plan."
+    echo "Use it for the *why* behind a decision; for current behaviour read the"
+    echo "code, CLAUDE.md and the README."
+  else
+    echo "No feature design record found under specs/. Read CLAUDE.md and the"
+    echo "README for project context."
   fi
   echo "$MARKER_END"
 } > "$TMP_SECTION"

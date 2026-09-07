@@ -1,5 +1,7 @@
 # Contract: `attioApi` credential
 
+> Historical contract record — see [README.md](./README.md). Current behaviour: the code and the project README.
+
 ## Definition
 - `name: 'attioApi'`, `displayName: 'Attio API'`.
 - Field: `apiToken` (string, `typeOptions.password: true`, required).

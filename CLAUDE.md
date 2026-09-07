@@ -79,14 +79,17 @@ README's maintainer notes.
 `attio-api-spec/` is reference-only, for planning. Never import it, copy it into `nodes/`, or read
 it at build or run time. Hand-write all node definitions.
 
-`specs/001-attio-action-node/` is the **original design record** for the v1 build, not a live plan —
-it describes the feature as specified in June 2026 and parts of it were superseded during
-implementation (see the status note at the top of `plan.md`). Use it for the *why* behind a
-decision; use the code, this file, and the README for current behaviour.
+`specs/001-attio-action-node/` records the v1 feature **as specified on 2026-06-22**. Every file
+carries a historical-record banner. What implementation superseded is enumerated in the status block
+at the top of `plan.md` — read that before trusting any detail in there.
+
+`.specify/memory/constitution.md` (**v2.0.0**) is different: it is *live* governance, reconciled
+against the shipped node. Its Sync Impact Report explains what changed from v1.0.1 and why.
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan:
-`specs/001-attio-action-node/plan.md` (with `research.md`, `data-model.md`,
-`contracts/`, and `quickstart.md` in the same directory).
+The feature design record lives at specs/001-attio-action-node/plan.md (with research.md,
+data-model.md, contracts/ and quickstart.md alongside it). It is a
+HISTORICAL record of how the feature was specified, not a live plan.
+Use it for the *why* behind a decision; for current behaviour read the
+code, CLAUDE.md and the README.
 <!-- SPECKIT END -->

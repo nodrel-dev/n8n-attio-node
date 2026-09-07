@@ -1,5 +1,7 @@
 # Contract: Record operations (9)
 
+> Historical contract record — see [README.md](./README.md). Current behaviour: the code and the project README.
+
 Scopes: writes = `record_permission:read-write` + `object_configuration:read`; reads = `record_permission:read` + `object_configuration:read` (List Entries also `list_entry:read`). See research.md R2.
 
 `{object}` = dropdown slug. Pure core: `objectPath`, `buildValuesBody`, `updateVerb`, `buildQueryBody`, `buildSearchBody`.
