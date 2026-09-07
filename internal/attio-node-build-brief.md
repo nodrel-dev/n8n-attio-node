@@ -105,7 +105,9 @@ This is the one open tension. The existing `n8n-nodes-attio` already occupies th
 
 - "Each package should integrate exactly one third-party service" is satisfied, and the guideline's PR path is aimed at improving an existing maintained node, not at superseding an abandoned unverifiable one.
 
-**Action (gating):** Before any build work, confirm with the n8n Creator Portal that a fresh, hand-built package under the Nodrel identity is accepted for verification given the thin auto-generated node already exists, rather than a PR being required. Treat this as Decision Gate 0. If the Portal requires a different package name or scope (for example `@nodrel/n8n-nodes-attio`), capture that before scaffolding, because the package name is baked into `package.json`, the npm Trusted Publisher config, and the credential and node type IDs. [VERIFY-LIVE]
+**Action (gating):** Before any build work, confirm with the n8n Creator Portal that a fresh, hand-built package under the Nodrel identity is accepted for verification given the thin auto-generated node already exists, rather than a PR being required. Treat this as Decision Gate 0. If the Portal requires a different package name or scope, capture that before scaffolding, because the package name is baked into `package.json`, the npm Trusted Publisher config, and the credential and node type IDs. [VERIFY-LIVE]
+
+> **Closed.** The gate was cleared and the package ships as **`@nodrel-dev/n8n-nodes-attio`**. Changing the name now is a breaking republish, not an edit.
 
 The Creator Portal and verification questions route through the n8n community forum and the verification guidelines page above. The forum has live threads where n8n staff (for example the `krisn0x` handle) respond to verification eligibility questions.
 
@@ -553,7 +555,7 @@ For Get Many operations, unwrap `data[]` into one n8n item per element. Implemen
 
 9. Decision Gate 0: confirm fresh-package eligibility with the Creator Portal before scaffolding. [VERIFY-LIVE]
 
-10. Package name `n8n-nodes-attio` unless the Portal requires a scoped name; if scoped, `@nodrel/n8n-nodes-attio`. [VERIFY-LIVE]
+10. Package name — **resolved: `@nodrel-dev/n8n-nodes-attio`** (was: `n8n-nodes-attio` unless the Portal required a scoped name). ✓ closed
 
 ---
 
@@ -617,29 +619,40 @@ For Get Many operations, unwrap `data[]` into one n8n item per element. Implemen
 
 Each item is a gate before the related operation is "done." Run against a real Attio workspace token.
 
-- [ ] Decision Gate 0: Creator Portal confirms fresh-package eligibility (3). [VERIFY-LIVE]
+> **All gates closed.** Verified live against workspace `Nodrel-Dev` and recorded per-task in
+> `specs/001-attio-action-node/tasks.md` (T032-T094). The full 18/18 operation pass is T094
+> (2026-08-16); the 429 gate closed a day later in T088 (2026-08-17). The node is published as
+> `@nodrel-dev/n8n-nodes-attio`. Kept here as the record of what was gated, not as open work.
 
-- [ ] Credential test: valid token -> save succeeds; invalid -> save fails at the credential dialog.
+- [X] Decision Gate 0: Creator Portal confirms fresh-package eligibility (3). ✓ cleared — shipped as `@nodrel-dev/n8n-nodes-attio`.
 
-- [ ] `getObjects` dropdown populates with People, Companies, Deals, and any custom objects.
+- [X] Credential test: valid token -> save succeeds; invalid -> save fails at the credential dialog.
 
-- [ ] Record Create, Get, Update (both modes), Upsert, Get Many, Search, Delete each round-trip.
+- [X] `getObjects` dropdown populates with People, Companies, Deals, and any custom objects.
 
-- [ ] Dual-scope behavior: a single-read-scope token 403s on record read with a scope-naming message. [VERIFY-LIVE]
+- [X] Record Create, Get, Update (both modes), Upsert, Get Many, Search, Delete each round-trip. ✓ T094.
 
-- [ ] Note Create / Get / Get Many / Delete round-trip.
+- [X] Dual-scope behavior: a single-read-scope token 403s on record read with a scope-naming message. ✓ T032.
 
-- [ ] Task Create / Get / Get Many / Update / Delete round-trip; Update has no content field; content is unchanged after update. [VERIFY-LIVE]
+- [X] Note Create / Get / Get Many / Delete round-trip. ✓ T071-T072.
 
-- [ ] 429 surfaces a rate-limit message and `Retry-After` is parsed as a date. [VERIFY-LIVE]
+- [X] Task Create / Get / Get Many / Update / Delete round-trip; Update has no content field; content is unchanged after update. ✓ T083.
 
-- [ ] `request_as` default `workspace` works with a plain API token in Search. [VERIFY-LIVE]
+- [X] 429 surfaces a rate-limit message and `Retry-After` is parsed correctly. ✓ T088 (2026-08-17).
+  **Corrected — this line previously read "parsed as a date."** That premise was wrong and shipping
+  it would have been a bug. Attio sends **both** RFC 9110 §10.2.3 forms depending on which limiter
+  trips: `GET /v2/self` returned `Mon, 17 Aug 2026 14:30:00 GMT`; the `POST …/records/query`
+  concurrency limiter returned **`9`**. Since `new Date('9')` is a *valid* Date, date-first parsing
+  rendered a nine-second delay as `2001-09-01T00:00:00.000Z`. `buildRateLimitHint` now rules out
+  delta-seconds first. Rate limits are **per endpoint**, not global.
 
-- [ ] AI-Agent tool path executes at least Record Create and Get Many.
+- [X] `request_as` default `workspace` works with a plain API token in Search. ✓ T057 — and omitting `request_as` returns 400, so it is always sent.
 
-- [ ] Linter passes: `npx @n8n/scan-community-package n8n-nodes-attio`.
+- [X] AI-Agent tool path executes at least Record Create and Get Many. ✓ T084 (both in one agent run).
 
-- [ ] Zero runtime dependencies in the published tarball (`npm pack` then inspect; `dependencies` empty in `package.json`).
+- [X] Linter passes: `npx @n8n/scan-community-package @nodrel-dev/n8n-nodes-attio`. ✓ T089.
+
+- [X] Zero runtime dependencies in the published tarball (`npm pack` then inspect; `dependencies` empty in `package.json`). ✓ T090 — tarball ships only LICENSE/README/package.json/dist.
 
 ---
 
@@ -770,7 +783,7 @@ A `ci.yml` runs on every pull request and on push to `main`. All steps must pass
 |-------|---------|---------|
 | Install | `npm ci` | Reproducible install from lockfile |
 | Lint | `npm run lint` | n8n node lint (`eslint-plugin-n8n-nodes-base`) |
-| Community scan | `npx @n8n/scan-community-package n8n-nodes-attio` | The verification linter (section 15) |
+| Community scan | `npx @n8n/scan-community-package @nodrel-dev/n8n-nodes-attio` | The verification linter (section 15) |
 | Typecheck | `tsc --noEmit` | Strict types, no emit |
 | Build | `npm run build` | Compiles to `dist/` |
 | Unit tests | `npm test` | The pure-core tests (section 9) |

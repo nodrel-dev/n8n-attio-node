@@ -1,5 +1,7 @@
 # Contract: Task operations (5)
 
+> Historical contract record — see [README.md](./README.md). Current behaviour: the code and the project README.
+
 Scopes: Create/Update/Get/Get Many need `task:*` + `object_configuration:read` + `record_permission:read` + `user_management:read`; Delete needs only `task:read-write`. See research.md R2. Pure core: `buildTaskCreateBody`, `buildTaskUpdateBody`.
 
 `format` is hardcoded `plaintext` (no selector). **Task content is write-once** (Principle VI).

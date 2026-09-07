@@ -1,5 +1,11 @@
 # Contracts: Attio Action Node
 
+> **Historical design record (2026-06-22).** This describes the v1 feature *as specified*. The node
+> has since shipped and is published as `@nodrel-dev/n8n-nodes-attio` (Record 9 + Note 4 + Task 5 =
+> **18 operations**). Statements here that implementation superseded are listed in the status block
+> at the top of [plan.md](../plan.md). For current behaviour use the code, `CLAUDE.md` and the
+> README — not this file.
+
 The node's external interface is the set of **n8n operations** it exposes (the AI-tool/agent contract) mapped onto **Attio REST API v2** calls. These files document, per operation: the n8n parameters in, the HTTP request out, the response shape, the unwrap rule, and the scopes required.
 
 Conventions (brief §5):

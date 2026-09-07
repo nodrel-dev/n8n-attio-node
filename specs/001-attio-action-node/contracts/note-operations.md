@@ -1,5 +1,7 @@
 # Contract: Note operations (4)
 
+> Historical contract record — see [README.md](./README.md). Current behaviour: the code and the project README.
+
 Scopes: Create/Get/Get Many need `note:*` + `object_configuration:read` + `record_permission:read`; Delete needs only `note:read-write`. See research.md R2. Pure core: `buildNoteBody`.
 
 ---

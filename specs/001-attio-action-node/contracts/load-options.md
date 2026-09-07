@@ -1,5 +1,7 @@
 # Contract: `getObjects` loadOptions
 
+> Historical contract record — see [README.md](./README.md). Current behaviour: the code and the project README.
+
 ## Purpose
 Populate the Object dropdown (and Search `objects` multiOptions) from the user's own workspace. This is the single piece justifying hand-building over the auto-generated node (Principle XI).
 

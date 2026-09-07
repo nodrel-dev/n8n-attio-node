@@ -4,9 +4,9 @@ An [n8n](https://n8n.io) community **action node** for the [Attio](https://attio
 Connects with a single workspace API token and works with Records, Notes, and Tasks. Also usable as
 an AI-Agent tool.
 
-> **Status:** all three resources are implemented and verified live against a real workspace
-> (see `specs/001-attio-action-node/`). This node has **zero runtime dependencies** and never reads
-> environment variables or the filesystem.
+> **Status:** shipped and published. All three resources — 18 operations — are implemented and
+> verified live against a real Attio workspace. This node has **zero runtime dependencies** and never
+> reads environment variables or the filesystem.
 
 ## Installation
 

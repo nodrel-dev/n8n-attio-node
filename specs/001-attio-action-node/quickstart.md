@@ -1,9 +1,15 @@
 # Quickstart & Validation Guide: n8n-nodes-attio
 
+> **Historical design record (2026-06-22).** This describes the v1 feature *as specified*. The node
+> has since shipped and is published as `@nodrel-dev/n8n-nodes-attio` (Record 9 + Note 4 + Task 5 =
+> **18 operations**). Statements here that implementation superseded are listed in the status block
+> at the top of [plan.md](./plan.md). For current behaviour use the code, `CLAUDE.md` and the
+> README — not this file.
+
 This guide proves the node works end-to-end. Implementation detail lives in `tasks.md` and the code; here are the runnable checks and the verify-live gates. Contracts: `contracts/`. Data model: `data-model.md`. Decisions: `research.md`.
 
 ## Prerequisites
-- **Decision Gate 0 cleared** (research.md R6): Creator Portal confirms fresh-package eligibility and the final package name (`n8n-nodes-attio` or `@nodrel/n8n-nodes-attio`). Blocks scaffolding.
+- ~~**Decision Gate 0**~~ — cleared. The package ships as `@nodrel-dev/n8n-nodes-attio`.
 - Node **>= 22.22**; npm.
 - An Attio workspace + API token from **Workspace Settings → Developers**, with scopes per `research.md` R2. For the scope-footgun test, also create a token with only `record_permission:read` (missing `object_configuration:read`).
 
@@ -11,7 +17,7 @@ This guide proves the node works end-to-end. Implementation detail lives in `tas
 ```bash
 npm ci
 npm run lint                                   # eslint-plugin-n8n-nodes-base
-npx @n8n/scan-community-package n8n-nodes-attio  # verification linter
+npx @n8n/scan-community-package @nodrel-dev/n8n-nodes-attio  # verification linter
 tsc --noEmit                                   # strict, incremental OFF
 npm run build                                  # → dist/
 npm test                                       # pure-core unit tests (must precede wiring)
@@ -59,7 +65,7 @@ All must pass. `npm pack` then inspect the tarball → `dependencies` empty (SC-
 - `continueOnFail` → one bad item does not abort the batch (FR-13).
 
 ## Verify-live checklist (brief §15 — every item a gate)
-- [ ] Decision Gate 0 eligibility confirmed.
+- [X] Decision Gate 0 eligibility confirmed.
 - [ ] Credential test: valid saves / invalid rejected at dialog.
 - [ ] `getObjects` populates standard + custom objects.
 - [ ] Record Create/Get/Update(both)/Upsert/Get Many/Search/Delete round-trip.

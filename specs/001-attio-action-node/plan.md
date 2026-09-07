@@ -22,8 +22,15 @@ Parts of this document were superseded during implementation and after:
   request. See `test/core/pathSegmentEncoding.test.ts`.
 - **`package.json` may not carry an `overrides` field** — `@n8n/community-nodes/no-overrides-field`
   rejects it for community node packages, and failing that rule blocks n8n Cloud verification.
-- **Decision Gate 0** (Creator Portal eligibility, listed below as "not yet cleared") was cleared;
-  the package is published as `@nodrel-dev/n8n-nodes-attio`.
+- **Decision Gate 0** (Creator Portal eligibility) was cleared; the package is published as
+  `@nodrel-dev/n8n-nodes-attio`.
+- **The constitution has moved on.** The Constitution Check below was assessed against v1.0.0.
+  `.specify/memory/constitution.md` is now **v2.0.0**: Principle II narrowed to one sanctioned
+  programmatic surface, Principle IX was corrected (`Retry-After` is delta-seconds OR an HTTP date,
+  seconds ruled out first), Principle XIII is marked satisfied, and Principle XV was added for URL
+  path-segment safety and the Cloud lint invariants.
+- **The operation matrix is 18, not 19.** "10 Record ops" was a typo in the brief (corrected
+  2026-08-16); the table has always listed 9. Record 9 + Note 4 + Task 5 = 18.
 
 ## Summary
 
@@ -37,7 +44,7 @@ Release automation follows the locked section-18 design: `release-please` (actio
 
 **Language/Version**: TypeScript (strict, `tsc --noEmit` gate, **incremental OFF**); compiled to `dist/`. Runtime target Node **>= 22.22**.
 
-**Primary Dependencies**: **Zero runtime dependencies** (hard gate, NFR-1). devDependencies only: `@n8n/node-cli` **>= 0.23.0**, `n8n-workflow` (peer/types), TypeScript, ESLint + `eslint-plugin-n8n-nodes-base`, a test runner (Jest or Vitest — see research), commitlint, lefthook.
+**Primary Dependencies**: **Zero runtime dependencies** (hard gate, NFR-1). devDependencies only: `@n8n/node-cli` **>= 0.23.0** (superseded — now `^0.46.4`), `n8n-workflow` (peer/types), TypeScript, ESLint + `eslint-plugin-n8n-nodes-base`, a test runner (Jest or Vitest — see research), commitlint, lefthook.
 
 **Storage**: N/A — no env vars, no filesystem (NFR-2/FR-10). All data flows through node parameters and the `attioApi` credential.
 
@@ -57,7 +64,7 @@ Release automation follows the locked section-18 design: `release-please` (actio
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Gates derived from `.specify/memory/constitution.md` (v1.0.0). All 14 principles evaluated against this plan:
+Gates derived from `.specify/memory/constitution.md` **as it stood at v1.0.0**. The constitution is now at **v2.0.0**; Principles II, IX and XIII were redefined and XV added to match what shipped, so the row wording below is the June 2026 assessment, not a current gate list. All 14 principles evaluated against this plan:
 
 | # | Principle | Plan compliance |
 |---|-----------|-----------------|
@@ -72,8 +79,8 @@ Gates derived from `.specify/memory/constitution.md` (v1.0.0). All 14 principles
 | IX | Faithful Error Surfacing | `formatAttioError` surfaces `status_code/type/code/message`; 403→scope hint; 429→rate-limit + `Retry-After` as delta-seconds or HTTP date; respects `continueOnFail`. **PASS** |
 | X | No Env/Filesystem Access | No `process.env`, no `fs`; all I/O via params/credential. **PASS** |
 | XI | Readable, AI-Tool-Ready Ops + Dynamic Dropdown | Resource→Operation, readable names + `action`; `getObjects` loadOptions on `GET /v2/objects`. **PASS** |
-| XII | Spec Fidelity + Locked-Decision Discipline | 19-op matrix honored; `data` unwrap; locked decisions untouched; every [VERIFY-LIVE] is a gate. **PASS** |
-| XIII | Eligibility Gated on Creator Portal | Decision Gate 0 captured as a blocking pre-scaffold task (see Phase 2 / tasks). **PASS (gate, not yet cleared)** |
+| XII | Spec Fidelity + Locked-Decision Discipline | 18-op matrix honored; `data` unwrap; locked decisions untouched; every [VERIFY-LIVE] is a gate. **PASS** |
+| XIII | Eligibility Gated on Creator Portal | Decision Gate 0 captured as a blocking pre-scaffold task (see Phase 2 / tasks). **PASS** — cleared; shipped as `@nodrel-dev/n8n-nodes-attio` |
 | XIV | Automated, Provenance-Only Releases | release-please + two-workflow split + OIDC provenance + commitlint/PR-title lint. **PASS** |
 
 **Result**: No violations. Complexity Tracking table left empty. The one *open* item is Decision Gate 0 (external Creator Portal confirmation) — a governance gate that blocks scaffolding, not a design conflict.

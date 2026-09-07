@@ -1,5 +1,11 @@
 # Specification Quality Checklist: Attio Action Node (n8n-nodes-attio)
 
+> **Historical design record (2026-06-22).** This describes the v1 feature *as specified*. The node
+> has since shipped and is published as `@nodrel-dev/n8n-nodes-attio` (Record 9 + Note 4 + Task 5 =
+> **18 operations**). Statements here that implementation superseded are listed in the status block
+> at the top of [plan.md](../plan.md). For current behaviour use the code, `CLAUDE.md` and the
+> README — not this file.
+
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-06-22
 **Feature**: [spec.md](../spec.md)

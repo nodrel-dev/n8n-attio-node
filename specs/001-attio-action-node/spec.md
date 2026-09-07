@@ -1,12 +1,18 @@
 # Feature Specification: Attio Action Node (n8n-nodes-attio)
 
+> **Historical design record (2026-06-22).** This describes the v1 feature *as specified*. The node
+> has since shipped and is published as `@nodrel-dev/n8n-nodes-attio` (Record 9 + Note 4 + Task 5 =
+> **18 operations**). Statements here that implementation superseded are listed in the status block
+> at the top of [plan.md](./plan.md). For current behaviour use the code, `CLAUDE.md` and the
+> README — not this file.
+
 **Feature Branch**: `001-attio-action-node`
 
 **Created**: 2026-06-22
 
-**Status**: Draft
+**Status**: Shipped — historical record
 
-**Input**: User description: "Build n8n-nodes-attio, a verified-track n8n community action node that talks directly to the Attio REST API so a user works with their own workspace via a single API token. Treat attio-node-build-brief.md as the source of requirements: the three resources and operation matrix (section 2), the user stories and acceptance scenarios (section 14), and the functional requirements (section 11). Resources are Record (10 ops), Note (4 ops), Task (5 ops); Objects is a dynamic dropdown source, not a resource. Decisions in section 12 are locked."
+**Input**: User description: "Build n8n-nodes-attio, a verified-track n8n community action node that talks directly to the Attio REST API so a user works with their own workspace via a single API token. Treat attio-node-build-brief.md as the source of requirements: the three resources and operation matrix (section 2), the user stories and acceptance scenarios (section 14), and the functional requirements (section 11). Resources are Record (10 ops [sic — 9; see banner]), Note (4 ops), Task (5 ops); Objects is a dynamic dropdown source, not a resource. Decisions in section 12 are locked."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -272,7 +278,7 @@ both execute successfully.
   **Entries** resources (managing lists or creating/editing list entries directly), and a typed
   per-attribute value builder are out of scope for v1 (deferred to later versions). This does
   **not** exclude the Record **List Entries** read operation (FR-003, `GET …/records/{id}/entries`),
-  which returns the list entries a given record belongs to and is part of the locked 19-operation
+  which returns the list entries a given record belongs to and is part of the locked 18-operation
   matrix.
 - Authentication is API-token only for v1; OAuth2 is deferred. (Section 12, locked.)
 - Attribute values and query filters are supplied as freeform structured input in v1 rather than
