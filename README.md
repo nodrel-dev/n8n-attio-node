@@ -177,15 +177,17 @@ enforces the invariants that keep this package publishable:
 | Gate | What it protects |
 |---|---|
 | `npm audit --omit=dev --audit-level=low` | **Blocking.** With zero runtime dependencies this is the audit that reaches users; it must stay clean. |
-| `npm audit` (full) | **Report-only.** Dev-toolchain advisories stay visible without failing the build — `@n8n/node-cli` pulls a large LangChain subtree this project never uses, and those findings have no upstream fix and never enter the tarball. |
+| `npm audit` (full) | **Report-only.** Dev-toolchain advisories stay visible without failing the build — `n8n-workflow` pins `axios` to an exact vulnerable version and `@n8n/node-cli` pulls a large LangChain subtree this project never uses; those findings have no upstream fix yet and never enter the tarball. |
 | Zero-dependency gate | `dependencies` must stay `{}`. |
 | No-env / no-filesystem gate | No `process.env` or `fs` under `nodes/`. |
 | `@n8n/scan-community-package` | Runs against the published package once it exists. |
 | `pr-title` (commitlint) | The squash-merge title `release-please` will read. |
 
-`npm audit` will report moderate advisories in the dev toolchain. They cannot be pinned away: the
-`overrides` field is rejected for community node packages by
+`npm audit` will report advisories (including high severity) in the dev toolchain. They cannot be
+pinned away: the `overrides` field is rejected for community node packages by
 `@n8n/community-nodes/no-overrides-field`, and failing that rule blocks n8n Cloud verification.
+Do not run `npm audit fix --force` — it downgrades `n8n-workflow`. Plain `npm audit fix` is safe, and
+Dependabot (`.github/dependabot.yml`) opens `chore(deps)` / `ci(deps)` PRs that never trigger a release.
 
 ### Least-privilege `GITHUB_TOKEN`
 

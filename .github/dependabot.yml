@@ -1,0 +1,28 @@
+# Dependabot keeps the dev toolchain and the SHA-pinned actions current.
+# Every PR title is `chore(deps)` / `ci(deps)` so a merge never cuts a release on its own —
+# release-please only releases on feat/fix. The package has zero runtime dependencies, so
+# nothing here reaches the published tarball.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      dev-toolchain:
+        dependency-type: development
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions:
+        patterns: ['*']
