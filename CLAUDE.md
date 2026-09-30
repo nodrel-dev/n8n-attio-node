@@ -55,10 +55,13 @@ Node **>= 22.22**. Dev-only: `@n8n/node-cli` **^0.46.4**, `n8n-workflow` **^2.38
 dep, declared `*`), TypeScript strict with incremental off, Jest + ts-jest, Playwright, commitlint,
 lefthook.
 
-`npm audit` reports ~10 moderate advisories in the dev toolchain — `@n8n/node-cli` pulls a large
-LangChain subtree this project never uses. They have no upstream fix and cannot be pinned away
-(the `overrides` ban above), and they never reach the published tarball. **`npm audit --omit=dev`
-is the gate that matters and must stay at zero.**
+`npm audit` reports 14 advisories (7 high) in the dev toolchain as of 2026-09-30. Two upstream
+causes: `n8n-workflow` pins `axios` to exactly `1.18.0` (still true in 2.42.1), and `@n8n/node-cli`
+pulls a LangChain subtree this project never uses. Neither can be pinned away (the `overrides` ban
+above), and neither reaches the published tarball. **`npm audit --omit=dev` is the gate that matters
+and must stay at zero.** Never take `npm audit fix --force`: it "fixes" by downgrading `n8n-workflow`
+to its stale `latest` tag. Plain `npm audit fix` (lockfile-only) is safe. Dependabot is configured in
+`.github/dependabot.yml`; when `n8n-workflow` ships `axios >= 1.20`, bump it and `@n8n/node-cli`.
 
 ## Releases
 
