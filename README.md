@@ -177,7 +177,7 @@ enforces the invariants that keep this package publishable:
 | Gate | What it protects |
 |---|---|
 | `npm audit --omit=dev --audit-level=low` | **Blocking.** With zero runtime dependencies this is the audit that reaches users; it must stay clean. |
-| `npm audit` (full) | **Report-only.** Dev-toolchain advisories stay visible without failing the build — `n8n-workflow` pins `axios` to an exact vulnerable version and `@n8n/node-cli` pulls a large LangChain subtree this project never uses; those findings have no upstream fix yet and never enter the tarball. |
+| `npm audit` (full) | **Report-only.** Dev-toolchain advisories stay visible without failing the build. `@n8n/node-cli` pulls in a large LangChain / AI-SDK subtree this project never uses, and n8n pins some of its transitive dependencies to exact versions. Those findings have no fix available here, and they never enter the tarball. |
 | Zero-dependency gate | `dependencies` must stay `{}`. |
 | No-env / no-filesystem gate | No `process.env` or `fs` under `nodes/`. |
 | `@n8n/scan-community-package` | Runs against the published package once it exists. |
