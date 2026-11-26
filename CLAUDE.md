@@ -51,17 +51,27 @@ real Attio tokens (see `test/e2e/README.md`) — it is a manual gate, not part o
 
 ## Toolchain
 
-Node **>= 22.22**. Dev-only: `@n8n/node-cli` **^0.46.4**, `n8n-workflow` **^2.38.1** (also the peer
+Node **>= 22.22**. Dev-only: `@n8n/node-cli` **^0.58.7**, `n8n-workflow` **^2.49.5** (also the peer
 dep, declared `*`), TypeScript strict with incremental off, Jest + ts-jest, Playwright, commitlint,
 lefthook.
 
-`npm audit` reports 14 advisories (7 high) in the dev toolchain as of 2026-09-30. Two upstream
-causes: `n8n-workflow` pins `axios` to exactly `1.18.0` (still true in 2.42.1), and `@n8n/node-cli`
-pulls a LangChain subtree this project never uses. Neither can be pinned away (the `overrides` ban
-above), and neither reaches the published tarball. **`npm audit --omit=dev` is the gate that matters
-and must stay at zero.** Never take `npm audit fix --force`: it "fixes" by downgrading `n8n-workflow`
-to its stale `latest` tag. Plain `npm audit fix` (lockfile-only) is safe. Dependabot is configured in
-`.github/dependabot.yml`; when `n8n-workflow` ships `axios >= 1.20`, bump it and `@n8n/node-cli`.
+As of 2026-11-26, `npm audit` still reports dev-toolchain advisories in six packages, all moderate or
+high and none critical. Every one is pinned upstream, inside `@n8n/node-cli`'s dependency tree:
+- n8n's own backend packages pin exact versions of `zod` (3.25.76), `qs` (6.16.0) and `stream-json`
+  (1.9.1). These come in through the LangChain / AI-SDK subtree, which this project never uses.
+- `uuid`, `glob` and `minimatch` only have fixes in a new major version, outside the ranges their
+  parents allow.
+
+None of them can be pinned away (the `overrides` ban above), and none reach the published tarball.
+**`npm audit --omit=dev` is the gate that matters and must stay at zero.**
+
+Never take `npm audit fix --force`: it "fixes" by downgrading `n8n-workflow`. Plain `npm audit fix`
+(lockfile-only) is safe. When an advisory traces to an n8n package, bump `n8n-workflow` and
+`@n8n/node-cli` to their `latest` tags and re-audit.
+
+Dependabot is configured in `.github/dependabot.yml`. Its grouped toolchain PR also proposes major
+upgrades (TypeScript 7, Jest 30, lefthook 2, commitlint 21). Take those deliberately, one at a time,
+not as part of a security sweep.
 
 ## Releases
 
